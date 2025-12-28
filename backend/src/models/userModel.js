@@ -12,5 +12,11 @@ async function findByEmail(email) {
   return undefined
 }
 
-module.exports = { findByEmail };
+async function insertUser(email, passwordHash, isAdmin=0){
+  const sql = 'INSERT INTO Users (email, password_hash, is_admin) VALUES (?, ?, ?)';
+
+  db_connection.execute(sql, [email, passwordHash, isAdmin]);
+}
+
+module.exports = { findByEmail, insertUser };
 

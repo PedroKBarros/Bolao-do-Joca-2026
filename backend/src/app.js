@@ -4,7 +4,10 @@ require('dotenv').config() // Necessário para qualquer módulo (arquivo JS) que
 
 const express = require('express');
 const authRoutes = require('./routes/authRoutes');
-const cookieParser = require("cookie-parser"); //Declarando o uso do cookie-parser para enviar de forma segura o token de acesso após login
+const registerRoutes = require('./routes/registerRoutes');
+//Declarando o uso do cookie-parser para enviar de 
+// forma segura o token de acesso após login:
+const cookieParser = require("cookie-parser");
 
 const app = express();
 
@@ -13,5 +16,6 @@ app.use(cookieParser());
 
 // prefixo da API
 app.use('/api', authRoutes);
+app.use('/api', registerRoutes);
 
 module.exports = app;

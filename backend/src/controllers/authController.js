@@ -19,4 +19,13 @@ async function login(req, res) {
   }
 }
 
-module.exports = { login };
+async function logout(req, res) {
+  try {
+    await authService.logout(res);
+    res.status(200).json({ message: "Logout efetuado com sucesso!" });
+  } catch (err) {
+    res.status(401).json({ message: err.message });
+  }
+}
+
+module.exports = { login, logout };

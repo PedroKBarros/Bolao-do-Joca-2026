@@ -27,4 +27,8 @@ async function login(email, password) {
   return token;
 }
 
-module.exports = { login };
+async function logout(res) {
+  res.clearCookie("auth_token");
+}
+
+module.exports = { login, logout };

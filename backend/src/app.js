@@ -9,10 +9,9 @@ const cookieParser = require("cookie-parser"); //Declarando o uso do cookie-pars
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 // prefixo da API
 app.use('/api', authRoutes);
-
-app.use(cookieParser());
 
 module.exports = app;

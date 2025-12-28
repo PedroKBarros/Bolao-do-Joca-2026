@@ -18,6 +18,11 @@ async function register(email, password, passwordConfirmation, isAdmin=0) {
     throw new Error('Senha tem menos de ' + MIN_PASSWORD_CHARS + ' caracteres ou mais de ' + MAX_PASSWORD_CHARS + 'caracteres')
   }
 
+  if(await userModel.findByEmail(email)){
+    throw new Error('Usuário com mesmo e-mail já cadastrado')
+  }
+
+
   const password_hash = await bcrypt.hash(password, 10);
   await userModel.insertUser(email, password_hash, isAdmin);
 

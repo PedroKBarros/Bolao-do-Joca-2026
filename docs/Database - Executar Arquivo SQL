@@ -1,0 +1,11 @@
+# Database - Executar Arquivo SQL
+
+Para executar um arquivo SQL, como os arquivos contidos e nas pastas /database/migrations e /database/seeds, utilizar o seguinte comando:
+```
+mysql -u root -p bj_2026 < caminho_arquivo.sql
+```
+
+Exemplo: caso estejamos na pasta /database, para executar o arquivo "abc.sql" contido na pasta /database/migrations, utilizar o comando:
+```
+mysql -u root -p bj_2026 < \migrations\abc.sql
+```

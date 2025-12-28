@@ -1,0 +1,1 @@
+ALTER TABLE Usuarios RENAME TO Clientes;

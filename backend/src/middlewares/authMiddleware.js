@@ -1,10 +1,8 @@
 // middlewares/authMiddleware.js
 const jwt = require('jsonwebtoken');
-const SECRET = 'chave-secreta';
 
 function authMiddleware(req, res, next) {
   const token = req.cookies.auth_token;
-  //const authHeader = req.headers.authorization;
 
   if (!token) {
     return res.status(401).json({ message: 'Usuario não autenticado' });

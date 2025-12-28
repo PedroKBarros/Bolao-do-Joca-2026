@@ -3,20 +3,19 @@ const jwt = require('jsonwebtoken');
 const SECRET = 'chave-secreta';
 
 function authMiddleware(req, res, next) {
-  const authHeader = req.headers.authorization;
+  const token = req.cookies.auth_token;
+  //const authHeader = req.headers.authorization;
 
-  if (!authHeader) {
-    return res.status(401).json({ message: 'Token não informado' });
+  if (!token) {
+    return res.status(401).json({ message: 'Usuario não autenticado' });
   }
 
-  const token = authHeader.split(' ')[1];
-
   try {
-    const decoded = jwt.verify(token, SECRET);
-    req.user = decoded; // dados do usuário disponíveis
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    req.userId = payload.id;
     next();
   } catch (err) {
-    res.status(401).json({ message: 'Token inválido' });
+    return res.status(401).json({ error: "Token inválido ou expirado" });
   }
 }
 

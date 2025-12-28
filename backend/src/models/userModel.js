@@ -1,17 +1,15 @@
-const bcrypt = require('bcrypt');
+const db_connection = require('../config/db');
 
-const users = [
-  {
-    id: 1,
-    email: 'teste@email.com',
-    passwordHash: bcrypt.hashSync('123', 10) // senha criptografada
-  }
-];
-
-//TODO: substituir por MySQL
 
 async function findByEmail(email) {
-  return users.find(user => user.email === email);
+  const sql = `SELECT * FROM Users WHERE Users.email = ?`;
+
+  const [rows, fields] = await db_connection.execute(sql, [email]);
+  if(rows.length)
+  {
+    return {id: rows[0].id, email: rows[0].email, passwordHash: rows[0].password_hash, isAdmin: rows[0].is_admin}
+  }
+  return undefined
 }
 
 module.exports = { findByEmail };

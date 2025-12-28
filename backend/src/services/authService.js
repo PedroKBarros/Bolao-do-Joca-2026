@@ -11,7 +11,7 @@ async function login(email, password) {
   if (!user) {
     throw new Error('Credenciais inválidas');
   }
-
+  console.log(user);
   const passwordMatch = await bcrypt.compare(password, user.passwordHash);
     console.log("teste3");
   if (!passwordMatch) {

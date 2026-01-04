@@ -28,7 +28,7 @@
     Observação: os itens 4 e 5 não farão parte do bolão. Portanto, se os critérios de desempate anteriores não forem suficientes, o sistema deverá solicitar ao usuário que desempate as seleções escolhendo as posições de cada uma, desconsiderando as posições já definidas no grupo.
 
 
-## 2ª Fase - Fase Mata-Mata 16-avos de Final
+## 2ª Fase - Fase Mata-Mata 32-avos de Final
 
 * Composição: composta por 32 seleções e 16 partidas
 * Passam: 16 seleções vitoriósas de cada partida

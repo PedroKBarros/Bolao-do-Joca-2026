@@ -1,4 +1,4 @@
-/*INSERT INTO GROUP_ELEMENTS (group_letter, team_name)
+INSERT INTO GROUP_ELEMENTS (group_letter, team_name)
 VALUES (
     'A',
     'México'
@@ -70,7 +70,7 @@ INSERT INTO GROUP_ELEMENTS (group_letter, team_name)
 VALUES (
     'D',
     'Paraguai'
-);*/
+);
 INSERT INTO GROUP_ELEMENTS (group_letter, team_name)
 VALUES (
     'D',

@@ -1,0 +1,85 @@
+# Regras e Formato da Copa do Mundo 2026
+
+* Total de Seleções: 48
+
+## 1ª Fase - Fase de Grupos
+
+* Composição: 12 grupos com 4 seleções cada
+* Passam: 2 melhores seleções de cada grupo e 8 melhores terceiro colocados gerais passarão para 2ª fase
+* Pontuação:
+    -> Vitórias = 3 pontos p/ o vencedor
+    -> Empates = 1 ponto p/ ambos
+    -> Derrotas = 0 pontos p/ o derrotado
+* Critérios de Desempate em Ordem de Precedência:
+    1. Confronto direto
+    2. Saldo de gols
+    3. Mais gols marcados
+    4. Os mesmos critérios dos itens 1, 2 e 3, mas considerando apenas os jogos das equipes empatadas
+    5. Contabilidade de cartões
+    6. Posição no Ranking da FIFA
+    Observação: os itens 5 e 6 não farão parte do bolão. Portanto, se os critérios de desempate anteriores não forem suficientes, o sistema deverá solicitar ao usuário que desempate as seleções escolhendo as posições de cada uma, desconsiderando as posições já definidas no grupo.
+
+* Critérios para Definição dos 8 Melhores 3º Lugares em Ordem de Precedência:
+    1. Total de pontos conquistados
+    2. Saldo de gols
+    3. Gols pró
+    4. Contabilidade de cartões
+    5. Posição no Ranking da FIFA
+    Observação: os itens 4 e 5 não farão parte do bolão. Portanto, se os critérios de desempate anteriores não forem suficientes, o sistema deverá solicitar ao usuário que desempate as seleções escolhendo as posições de cada uma, desconsiderando as posições já definidas no grupo.
+
+
+## 2ª Fase - Fase Mata-Mata 16-avos de Final
+
+* Composição: composta por 32 seleções e 16 partidas
+* Passam: 16 seleções vitoriósas de cada partida
+* Critérios de Desempate em Ordem de Precedência: 
+    1. Dois tempos de prorrogação de 15min
+    2. Disputa de Pênaltis
+    Observação: os itens 1 e 2 não farão parte do bolão. Portanto, para cada partida que o participante do bolão informe placar de empate, o sistema deverá solicitar que ele selecione qual das seleções passará para a fase posterior.
+
+## 3ª Fase - Fase Mata-Mata Oitavas de Final
+
+* Composição: composta por 16 seleções e 8 partidas
+* Passam: 8 seleções vitoriósas de cada partida
+* Critérios de Desempate em Ordem de Precedência: 
+    1. Dois tempos de prorrogação de 15min
+    2. Disputa de Pênaltis
+    Observação: os itens 1 e 2 não farão parte do bolão. Portanto, para cada partida que o participante do bolão informe placar de empate, o sistema deverá solicitar que ele selecione qual das seleções passará para a fase posterior.
+
+## 4ª Fase - Fase Mata-Mata Quartas de Final
+
+* Composição: composta por 8 seleções e 4 partidas
+* Passam: 4 seleções vitoriósas de cada partida
+* Critérios de Desempate em Ordem de Precedência: 
+    1. Dois tempos de prorrogação de 15min
+    2. Disputa de Pênaltis
+    Observação: os itens 1 e 2 não farão parte do bolão. Portanto, para cada partida que o participante do bolão informe placar de empate, o sistema deverá solicitar que ele selecione qual das seleções passará para a fase posterior.
+
+## 5ª Fase - Fase Mata-Mata Semifinal
+
+* Composição: composta por 4 seleções e 2 partidas
+* Passam: 2 seleções vitoriósas de cada partida
+* Critérios de Desempate em Ordem de Precedência: 
+    1. Dois tempos de prorrogação de 15min
+    2. Disputa de Pênaltis
+    Observação: os itens 1 e 2 não farão parte do bolão. Portanto, para cada partida que o participante do bolão informe placar de empate, o sistema deverá solicitar que ele selecione qual das seleções passará para a fase posterior.
+
+## Disputa de 3º Lugar
+
+* Não é considerada uma fase
+* Composição: composta por 2 seleções e 1 partida
+* Passam: -
+* A seleção vitoriósa ficará em 3º lugar na Copa do Mundo FIFA de 2026
+* Critérios de Desempate em Ordem de Precedência: 
+    1. Dois tempos de prorrogação de 15min
+    2. Disputa de Pênaltis
+    Observação: os itens 1 e 2 não farão parte do bolão. Portanto, para cada partida que o participante do bolão informe placar de empate, o sistema deverá solicitar que ele selecione qual das seleções passará para a fase posterior.
+
+## 6ª Fase - Fase Mata-Mata Final
+
+* Composição: composta por 2 seleções e 1 partida
+* Passam: 1 seleção vitoriósa de cada partida
+* Critérios de Desempate em Ordem de Precedência: 
+    1. Dois tempos de prorrogação de 15min
+    2. Disputa de Pênaltis
+    Observação: os itens 1 e 2 não farão parte do bolão. Portanto, para cada partida que o participante do bolão informe placar de empate, o sistema deverá solicitar que ele selecione qual das seleções passará para a fase posterior.

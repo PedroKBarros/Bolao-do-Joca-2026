@@ -1,0 +1,48 @@
+INSERT INTO CUP_GROUPS (letter)
+VALUES (
+    'A'
+);
+INSERT INTO CUP_GROUPS (letter)
+VALUES (
+    'B'
+);
+INSERT INTO CUP_GROUPS (letter)
+VALUES (
+    'C'
+);
+INSERT INTO CUP_GROUPS (letter)
+VALUES (
+    'D'
+);
+INSERT INTO CUP_GROUPS (letter)
+VALUES (
+    'E'
+);
+INSERT INTO CUP_GROUPS (letter)
+VALUES (
+    'F'
+);
+INSERT INTO CUP_GROUPS (letter)
+VALUES (
+    'G'
+);
+INSERT INTO CUP_GROUPS (letter)
+VALUES (
+    'H'
+);
+INSERT INTO CUP_GROUPS (letter)
+VALUES (
+    'I'
+);
+INSERT INTO CUP_GROUPS (letter)
+VALUES (
+    'J'
+);
+INSERT INTO CUP_GROUPS (letter)
+VALUES (
+    'K'
+);
+INSERT INTO CUP_GROUPS (letter)
+VALUES (
+    'L'
+);

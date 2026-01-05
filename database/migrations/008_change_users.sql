@@ -1,0 +1,4 @@
+ALTER TABLE USERS
+DROP COLUMN sweepstake_name;
+
+

@@ -1,0 +1,5 @@
+ALTER TABLE USERS
+DROP FOREIGN KEY fk_users_sweepstake;
+
+ALTER TABLE USERS
+DROP COLUMN sweepstake_name;

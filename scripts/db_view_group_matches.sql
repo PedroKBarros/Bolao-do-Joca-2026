@@ -1,0 +1,1 @@
+SELECT * FROM GROUP_MATCHES ORDER BY group_letter_1;

@@ -1,0 +1,1 @@
+SELECT letter FROM CUP_GROUPS;

@@ -1,0 +1,21 @@
+-- 1. Remove FK
+ALTER TABLE GROUP_MATCHES_PREDICTIONS
+DROP FOREIGN KEY group_matches_predictions_ibfk_1;
+
+-- 2️. Remove PK
+ALTER TABLE GROUP_MATCHES_PREDICTIONS
+DROP PRIMARY KEY;
+
+-- 3️. Rename column
+ALTER TABLE GROUP_MATCHES_PREDICTIONS
+CHANGE user_id sweepstake_users_id INT NOT NULL;
+
+-- 4️. Create again the compose PK
+ALTER TABLE GROUP_MATCHES_PREDICTIONS
+ADD PRIMARY KEY (sweepstake_users_id, group_match_id);
+
+-- 5️. Create right FK
+ALTER TABLE GROUP_MATCHES_PREDICTIONS
+ADD CONSTRAINT fk_gmpid_suid
+FOREIGN KEY (sweepstake_users_id)
+REFERENCES SWEEPSTAKE_USERS(id);

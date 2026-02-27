@@ -4,33 +4,36 @@ const bcrypt = require('bcrypt');
 const MIN_PASSWORD_CHARS = 5;
 const MAX_PASSWORD_CHARS = 30;
 
-async function register(email, password, passwordConfirmation, isAdmin=0) {
-  if(!emailValido(email)){
-    throw new Error('Email é inválido');
+async function register(name, whatsappNumber, password, passwordConfirmation, isAdmin=0) {
+  if(name.length == 0){
+    throw new Error('Nome não foi informado.');
+  }
+
+  if(!isValidWhatsappNumber(whatsappNumber)){
+    throw new Error('Número do Whatsapp não é válido.');
   }
 
   if(password !== passwordConfirmation){
-        throw new Error('Senhas diferentes');    
+        throw new Error('Senhas diferentes.');    
   }
 
   
   if(password.length < MIN_PASSWORD_CHARS || password.length > MAX_PASSWORD_CHARS){
-    throw new Error('Senha tem menos de ' + MIN_PASSWORD_CHARS + ' caracteres ou mais de ' + MAX_PASSWORD_CHARS + 'caracteres')
+    throw new Error('Senha tem menos de ' + MIN_PASSWORD_CHARS + ' caracteres ou mais de ' + MAX_PASSWORD_CHARS + 'caracteres.')
   }
 
-  if(await userModel.findByEmail(email)){
-    throw new Error('Usuário com mesmo e-mail já cadastrado')
+  if(await userModel.findByWhatsappNumber(whatsappNumber)){
+    throw new Error('Usuário com mesmo número de Whatsapp já cadastrado.')
   }
-
 
   const password_hash = await bcrypt.hash(password, 10);
-  await userModel.insertUser(email, password_hash, isAdmin);
+  await userModel.insertUser(name, whatsappNumber, password_hash, isAdmin);
 
 }
 
-function emailValido(email) {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return regex.test(email);
+function isValidWhatsappNumber(whatsappNumber) {
+  const regex = /^(?:\+?55\s?)?(?:\(?\d{2}\)?\s?)?9\d{4}-?\d{4}$/;
+  return regex.test(whatsappNumber);
 }
 
-module.exports = { register };
+module.exports = { register, MIN_PASSWORD_CHARS, MAX_PASSWORD_CHARS };

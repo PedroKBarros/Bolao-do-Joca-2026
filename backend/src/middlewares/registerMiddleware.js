@@ -1,10 +1,11 @@
 
 function registerMiddleware(req, res, next) {
   try{
-    const { keyword } = req.body;
+    let { keyword } = req.body;
     console.log(req.body);
     console.log(keyword);
-    const expected_keyword = process.env.KEYWORD_TO_REGISTER;
+    const expected_keyword = String(process.env.KEYWORD_TO_REGISTER).toUpperCase();
+    keyword = String(keyword).toUpperCase();
     if (!keyword) {
         return res.status(400).json({ message: 'Palavra-chave para realizar cadastro não foi recebida' });
     }

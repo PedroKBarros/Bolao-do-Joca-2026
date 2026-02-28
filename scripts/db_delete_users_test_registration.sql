@@ -1,1 +1,0 @@
-DELETE FROM Users WHERE Users.whatsapp_number IN ('988776655', '999887766');

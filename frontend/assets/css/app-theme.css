@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --app-blue: #01256F;
+  --app-yellow: #F3B401;
+  --app-green: #036522;
+  --app-white: #ffffff;
+  --app-red: #920808;
+  --app-font-family: 'Inter', Arial, sans-serif;
+  --app-buttons-font-size: 12px;
+  --app-big-texts-font-size: 16px;
+  --app-input-texts-font-size: 14px;
+  --app-normal-texts-font-size: 14px;
+  --app-big-texts-font-weight: bold;
+  --app-buttons-font-weight: bold;
+  --app-buttons-border-radius: 10px;
+  --app-modal-title-font-size: 16px;
+  --app-modal-title-font-weight: bold;
+  --app-modal-text-font-size: 14px;
+  --app-modal-text-font-weight: normal;
+  --app-obs-text-font-size: 13px;
+  --app-obs-text-font-style: italic;
+  --app-obs-text-color: var(--app-green);
+}
+
+body{
+    font-family: var(--app-font-family);
+}
+
+.app-container{
+  max-width: 370px;   /* largura máxima da área útil */
+  margin: 0 auto;       /* centraliza horizontalmente */
+  padding: 0 16px;      /* deixa espaço interno nas laterais */
+  background-color: #EEEEEE;    
+}
+
+
+.app-big-txt{
+    font-size: var(--app-big-texts-font-size);
+    font-weight: var(--app-big-texts-font-weight);
+}
+
+.app-obs-txt{
+    font-size: var(--app-obs-text-font-size);
+    font-style: var(--app-obs-text-font-style);
+    color: var(--app-obs-text-color);
+
+}
+
+.app-modal-txt{
+    font-size: var(--app-modal-text-font-size);
+    font-weight: var(--app-modal-text-font-weight);
+}
+
+.app-modal-title{
+    font-size: var(--app-modal-title-font-size);
+    font-weight: var(--app-modal-title-font-weight);
+    color: var(--app-blue);
+}
+
+.app-blue-txt{
+    color: var(--app-blue);
+}
+
+.app-yellow-txt{
+    color: var(--app-yellow);
+}
+
+.app-red-txt{
+    color: var(--app-red);
+}
+
+.app-zero-separation{
+    padding: 0px 0px;
+    margin: 0px 0px 0px;
+}
+
+.app-height-separation{
+    padding: 0px 0px;
+    margin: 20px 0px 20px;
+}
+
+.app-top-separation{
+    padding: 0px 0px;
+    margin: 20px 0px 0px;
+}
+
+.app-bottom-separation{
+    padding: 0px 0px;
+    margin: 0px 0px 20px;
+} 
+
+
+.app-btn{
+    border: 0px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    font-weight: var(--app-buttons-font-weight);
+    font-size: var(--app-buttons-font-size);
+}
+
+.app-big-btn{
+    min-width: fit-content;
+    max-width: 260px;
+    width: 100%;
+    height: 48px;
+}
+
+.app-medium-btn{
+    min-width: fit-content;
+    max-width: 113px;
+    width: 100%;
+    height: 29px;
+}
+
+.app-positive-btn-color{
+    color: var(--app-white);
+    background-color: var(--app-green);
+}
+
+.app-negative-btn-color{
+    color: var(--app-white);
+    background-color: var(--app-yellow);
+}
+
+.app-field{
+    border-radius: 10px;
+    font-size: var(--app-input-texts-font-size);
+
+}
+
+.app-big-field{
+    max-width: 364px;
+    width: 100%;
+    height: 47px;
+    border: 1px solid #000000;
+}
+
+button:hover {
+  filter: brightness(0.9); /* 10% mais escuro */
+}

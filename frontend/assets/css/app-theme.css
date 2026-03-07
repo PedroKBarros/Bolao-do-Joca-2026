@@ -28,12 +28,35 @@ body{
 }
 
 .app-container{
-  max-width: 370px;   /* largura máxima da área útil */
-  margin: 0 auto;       /* centraliza horizontalmente */
-  padding: 0 16px;      /* deixa espaço interno nas laterais */
-  background-color: #EEEEEE;    
+  max-width: 100%;   /* largura máxima da área útil */
+  margin: 0 0;       /* centraliza horizontalmente */
+  padding: 0 0px;      /* deixa espaço interno nas laterais */
+  background-color: #FFFFFF;    
 }
 
+.app-restrict-container{
+  max-width: max-content;   /* largura máxima da área útil */
+  margin: 0 0;       /* centraliza horizontalmente */
+  padding: 10px 10px 10px 10px;      /* deixa espaço interno nas laterais */
+  background-color: #FFFFFF;       
+}
+
+.app-header-after-login{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 71px;
+}
+
+.app-logo-header-after-login{
+    width: 50px;
+    height: 50px;
+}
+
+.app-main-content-after-login{
+    padding: 70px;
+}
 
 .app-big-txt{
     font-size: var(--app-big-texts-font-size);
@@ -70,6 +93,26 @@ body{
     color: var(--app-red);
 }
 
+.app-white-txt{
+    color: var(--app-white);
+}
+
+.app-blue-bg{
+    background-color: var(--app-blue);
+}
+
+.app-yellow-bg{
+    background-color: var(--app-yellow);
+}
+
+.app-red-bg{
+    background-color: var(--app-red);
+}
+
+.app-white-bg{
+    background-color: var(--app-white);
+}
+
 .app-zero-separation{
     padding: 0px 0px;
     margin: 0px 0px 0px;
@@ -88,8 +131,22 @@ body{
 .app-bottom-separation{
     padding: 0px 0px;
     margin: 0px 0px 20px;
-} 
+}
 
+.app-width-separation{
+    padding: 0px 0px;
+    margin: 0px 20px 0px 20px;
+}
+
+.app-left-separation{
+    padding: 0px 0px;
+    margin: 0px 0px 0px 20px;
+}
+
+.app-right-separation{
+    padding: 0px 0px;
+    margin: 0px 20px 0px 0px;
+}
 
 .app-btn{
     border: 0px;
@@ -97,6 +154,8 @@ body{
     text-transform: uppercase;
     font-weight: var(--app-buttons-font-weight);
     font-size: var(--app-buttons-font-size);
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .app-big-btn{
@@ -108,10 +167,18 @@ body{
 
 .app-medium-btn{
     min-width: fit-content;
-    max-width: 113px;
+    max-width: 160px;
     width: 100%;
-    height: 29px;
+    height: 38px;
 }
+
+.app-small-btn{
+    min-width: fit-content;
+    max-width: 60;
+    width: 100%;
+    height: 28px;
+}
+
 
 .app-positive-btn-color{
     color: var(--app-white);
@@ -123,6 +190,11 @@ body{
     background-color: var(--app-yellow);
 }
 
+.app-neutral-btn-color{
+    color: var(--app-white);
+    background-color: var(--app-blue);
+}
+
 .app-field{
     border-radius: 10px;
     font-size: var(--app-input-texts-font-size);
@@ -131,7 +203,7 @@ body{
 
 .app-big-field{
     max-width: 364px;
-    width: 100%;
+    width:300px;
     height: 47px;
     border: 1px solid #000000;
 }

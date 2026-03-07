@@ -14,54 +14,60 @@
         </header>
 
         <main>
-            <div class="row d-flex justify-content-center align-items-center">
-                <div class="col-12 text-center"><p class="app-big-txt app-blue-txt app-bottom-separation">CADASTRO</p></div>
+            <!-- A div container abaixo serve apenas para que as labels fiquem alinhadas 
+             a esquerda, não sendo necessário em todas as páginas.
+             Obs.: ela só cumprirá esse objetivo se os elementos de maior 
+             largura da página forem os campos. -->
+            <div class="container app-restrict-container mx-auto">
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-center"><p class="app-big-txt app-blue-txt app-bottom-separation">CADASTRO</p></div>
+                </div>
+                <form id="registerForm">
+                    <div class="row d-flex justify-content-center align-items-center">
+                        <div class="col-12 text-start">
+                            <label for="user-name" class="app-big-txt app-yellow-txt">Nome de usuário:</label>
+                        </div>
+                    </div>
+                    <div class="row d-flex justify-content-center align-items-center">
+                        <div class="col-12 text-start">
+                            <input type="text" class="app-field app-big-field" id="user-name" placeholder="">
+                        </div>
+                    </div>
+                    <div class="row d-flex justify-content-center align-items-center">
+                        <div class="col-12 text-start">
+                            <label for="whatsapp-num" class="app-big-txt app-yellow-txt app-top-separation">Número do Whatsapp:</label>
+                        </div>
+                    </div>
+                    <div class="row d-flex justify-content-center align-items-center">
+                        <div class="col-12 text-start">
+                            <input type="text" class="app-field app-big-field" id="whatsapp-num" placeholder="">
+                        </div>
+                    </div>
+                    <div class="row d-flex justify-content-center align-items-center">
+                        <div class="col-12 text-start">
+                            <label for="password" class="app-big-txt app-yellow-txt app-top-separation">Senha:</label>
+                        </div>
+                    </div>
+                    <div class="row d-flex justify-content-center align-items-center">
+                        <div class="col-12 text-start">
+                            <input type="password" class="app-field app-big-field" id="password" placeholder="">
+                        </div>
+                    </div>
+                    <div class="row d-flex justify-content-center align-items-center">
+                        <div class="col-12 text-start">
+                            <label for="password-confirm" class="app-big-txt app-yellow-txt app-top-separation">Informe a senha novamente:</label>
+                        </div>
+                    </div>
+                    <div class="row d-flex justify-content-center align-items-center">
+                        <div class="col-12 text-start">
+                            <input type="password" class="app-field app-big-field" id="password-confirm" placeholder="">
+                        </div>
+                    </div>
+                    <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-center"><button id="register-confirm" type="button" class="app-btn app-big-btn app-positive-btn-color app-height-separation">Confirmar</button></div>
+                    </div>
+                </form>
             </div>
-            <form id="registerForm">
-                <div class="row d-flex justify-content-center align-items-center">
-                    <div class="col-12 text-start">
-                        <label for="user-name" class="app-big-txt app-yellow-txt">Nome de usuário:</label>
-                    </div>
-                </div>
-                <div class="row d-flex justify-content-center align-items-center">
-                    <div class="col-12 text-start">
-                        <input type="text" class="app-field app-big-field" id="user-name" placeholder="">
-                    </div>
-                </div>
-                <div class="row d-flex justify-content-center align-items-center">
-                    <div class="col-12 text-start">
-                        <label for="whatsapp-num" class="app-big-txt app-yellow-txt app-top-separation">Número do Whatsapp:</label>
-                    </div>
-                </div>
-                <div class="row d-flex justify-content-center align-items-center">
-                    <div class="col-12 text-start">
-                        <input type="text" class="app-field app-big-field" id="whatsapp-num" placeholder="">
-                    </div>
-                </div>
-                <div class="row d-flex justify-content-center align-items-center">
-                    <div class="col-12 text-start">
-                        <label for="password" class="app-big-txt app-yellow-txt app-top-separation">Senha:</label>
-                    </div>
-                </div>
-                <div class="row d-flex justify-content-center align-items-center">
-                    <div class="col-12 text-start">
-                        <input type="password" class="app-field app-big-field" id="password" placeholder="">
-                    </div>
-                </div>
-                <div class="row d-flex justify-content-center align-items-center">
-                    <div class="col-12 text-start">
-                        <label for="password-confirm" class="app-big-txt app-yellow-txt app-top-separation">Informe a senha novamente:</label>
-                    </div>
-                </div>
-                <div class="row d-flex justify-content-center align-items-center">
-                    <div class="col-12 text-start">
-                        <input type="password" class="app-field app-big-field" id="password-confirm" placeholder="">
-                    </div>
-                </div>
-                <div class="row d-flex justify-content-center align-items-center">
-                <div class="col-12 text-center"><button id="register-confirm" type="button" class="app-btn app-big-btn app-positive-btn-color app-height-separation">Confirmar</button></div>
-                </div>
-            </form>
         </main>
     </div>
     <script src="/frontend/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>

@@ -1,5 +1,6 @@
-import { showModalWithHtmlContent, showModalWithTextContent, addHtmlInShowedModal, haveRequest, goToPage} from "./common.js";
+import { showModal, haveRequest, goToPage, showLoadingModal, loadModalInHtmlPage } from "./common.js";
 import { PAGE_CONFIGS } from "./config.js";
+import { goToUserSweepsPage } from "./userSweeps.js";
 
 const msgTitle = "Login";
 const loginData = `
@@ -11,6 +12,8 @@ const loginData = `
 
 var loginDataParsed;
 
+loadModalInHtmlPage();
+
 document.getElementById('login-confirm')
     .addEventListener('click', () => {
         checkIfIsFilledData();
@@ -21,7 +24,8 @@ function checkIfIsFilledData(){
     let passwordField = document.getElementById("password");
     
     if(whatsappNumberField.value === '' || passwordField.value === ''){
-        showModalWithTextContent(msgTitle + " - Campos não preenchidos", "Para realizar o login informe o número do Whatsapp e a senha.", true, "OK", null, false); 
+        showModal(msgTitle + " - Campos não preenchidos", "<p>Para realizar o login informe o número do Whatsapp e a senha.</p>", 
+            true, "OK", null, false); 
         return;
     }
     storageLoginData();
@@ -40,12 +44,14 @@ function storageLoginData(){
 
 async function haveLoginRequest(){
     try{
+        showLoadingModal();
+
         const response = await haveRequest("/login", "POST", JSON.stringify(loginDataParsed));
         if(response.isSuccessStatus){
-            //TODO: direcionar para página dos bolões do usuário
+            goToUserSweepsPage();
         }else{
-            showModalWithTextContent(msgTitle, response.body.message, 
-                true, "OK", null, false);            
+            showModal(msgTitle, "<p>"+response.body.message+"</p>", 
+                true, "OK", null, false); 
         }
     }catch(error){
         /*
@@ -57,11 +63,12 @@ async function haveLoginRequest(){
             -Problema de CORS que bloqueia a requisição
             -Usuário sem internet
         */
-        showModalWithTextContent(msgTitle + " - Erro", "<strong>Ocorreu um erro inesperado ao tentar realizar o login.</strong>"+
+        showModal(msgTitle + " - Erro", "<strong>Ocorreu um erro inesperado ao tentar realizar o login.</strong>"+
             "<br>Sugerimos que verifique se você está conectado a internet ou aguarde 10 minutos antes de tentar novamente."+
             "<br>Caso o problema persista, envie uma mensagem no grupo de Whatsapp do bolão informando o problema.<br>"+
             "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br>"+error.message, 
             true, "OK", null, false); 
+
     }
 
 }

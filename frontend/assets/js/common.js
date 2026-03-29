@@ -12,127 +12,72 @@ export function goToPage(htmlFileName){
     }     
 }
 
-export function showModalWithHtmlContent(title, htmlContent, showPositiveButtonText=true, positiveButtonText='CONFIRMAR', 
-    positiveButtonCallFunc=null,  showNegativeButtonText=true, negativeButtonText='CANCELAR', negativeButtonCallFunc=null){
+export function showModal(title, htmlContent, showPositiveButton=true, positiveButtonText='CONFIRMAR', 
+    positiveButtonCallFunc=null,  showNegativeButton=true, negativeButtonText='CANCELAR', 
+    negativeButtonCallFunc=null, removeDefaultHideModalWhenClickPosBtn=false){
 
-    removeLastHtmlModal();
-    const modalHTML = generateModalWithHtmlContent(title, htmlContent, showPositiveButtonText=true, 
-        positiveButtonText='CONFIRMAR', showNegativeButtonText=true, negativeButtonText='CANCELAR');
+    document.getElementById('modalTitle').innerHTML = title;
+    document.getElementById('modalHtmlContent').innerHTML = htmlContent;
+    if(showPositiveButton){
+        document.getElementById("modalPositiveBtn").classList.remove("d-none");
+        document.getElementById("modalPositiveBtn").innerHTML = positiveButtonText;
+    }else{
+        document.getElementById("modalPositiveBtn").classList.add("d-none");        
+    }
 
-    document.body.insertAdjacentHTML("beforeend", modalHTML);
+    if(showNegativeButton){
+        document.getElementById("modalNegativeBtn").classList.remove("d-none");
+        document.getElementById("modalNegativeBtn").innerHTML = negativeButtonText;
+    }else{
+        document.getElementById("modalNegativeBtn").classList.add("d-none");        
+    }
 
-    const myModal = new bootstrap.Modal(document.getElementById('modal'), {
+    //Definindo se o botão positivo fechará por padrão a modal ou não:
+    if(removeDefaultHideModalWhenClickPosBtn){
+        document.getElementById("modalPositiveBtn").removeAttribute("data-bs-dismiss");
+    }else{
+        document.getElementById("modalPositiveBtn").setAttribute("data-bs-dismiss","modal");
+    }
+
+
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById("appModal"), {
         backdrop: 'static',  // não fecha ao clicar fora
         keyboard: false      // não fecha ao pressionar ESC
     });
-
-    myModal.show();
-
-    //Adicionando eventos nos botões da modal:
-    addEventsInModalButtons(negativeButtonCallFunc, positiveButtonCallFunc);
-
-}
-
-function removeLastHtmlModal(){
-    let modal = document.getElementById("modal");
-    let backdropFadeShow = document.getElementsByClassName("modal-backdrop fade show")[0];
-    if(modal !== null && modal !== undefined){
-        modal.remove();
-        if(backdropFadeShow !== null && backdropFadeShow !== undefined){
-            backdropFadeShow.remove();
-        }
-    }
-}
-
-function generateModalWithHtmlContent(title, htmlContent, showPositiveButtonText=true, positiveButtonText='CONFIRMAR', 
-    showNegativeButtonText=true, negativeButtonText='CANCELAR'){
-    let modalFooterHtmlContent = '';
-    let modalHTML = `
-    <div class="modal fade" id="modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-        <div class="modal-header">
-            <h1 class="app-modal-title">` + title + `</h1>
-        </div>
-        <div class="modal-body">` + htmlContent + `</div>
-        <div class="modal-footer">`;
-    if(showNegativeButtonText){
-        modalFooterHtmlContent+=`
-        <button id="negative-btn-modal" type="button" class="app-btn app-medium-btn app-negative-btn-color" data-bs-dismiss="modal">`
-         + negativeButtonText + `</button>`;
-    }
-    
-    if(showPositiveButtonText){
-        modalFooterHtmlContent+=`
-        <button id="positive-btn-modal" type="button" class="app-btn app-medium-btn app-positive-btn-color" data-bs-dismiss="modal">`
-         + positiveButtonText + `</button>`;
-    } 
-        
-    modalHTML += modalFooterHtmlContent + `
-        </div>
-        </div>
-    </div>
-    </div>
-    `;
-
-    return modalHTML;
-}
-
-export function showModalWithTextContent(title, textContent, showPositiveButtonText=true, 
-    positiveButtonText='CONFIRMAR', positiveButtonCallFunc=null,
-    showNegativeButtonText=true, negativeButtonText='CANCELAR', negativeButtonCallFunc=null){
-
-    removeLastHtmlModal();
-
-    const modalHTML = generateModalWithTextContentHTML(title, textContent, showPositiveButtonText, 
-    positiveButtonText, showNegativeButtonText, negativeButtonText);
-
-    document.body.insertAdjacentHTML("beforeend", modalHTML);
-    const myModal = new bootstrap.Modal(document.getElementById('modal'), {
-        backdrop: 'static',  // não fecha ao clicar fora
-        keyboard: false      // não fecha ao pressionar ESC
-    });
+    /*
+    * Obs.: utilizar getOrCreateInstance garante que se a modal já estiver em memória, 
+    * por ter sido criada anteriormente, ela não será criada novamente.
+    */
+    modal.show();
 
     //Adicionando eventos nos botões da modal:
     addEventsInModalButtons(negativeButtonCallFunc, positiveButtonCallFunc);
-
-    myModal.show();
 }
 
-function generateModalWithTextContentHTML(title, textContent, showPositiveButtonText=true, 
-    positiveButtonText='CONFIRMAR', showNegativeButtonText=true, 
-    negativeButtonText='CANCELAR'){
-    let modalFooterHtmlContent = '';
-    let modalHTML = `
-    <div class="modal fade" id="modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-        <div class="modal-header">
-            <h1 class="app-modal-title">` + title + `</h1>
+export function hideModal()
+{
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById("appModal"));
+    /*
+    * Obs.: utilizar getOrCreateInstance garante que se a modal já estiver em memória, 
+    * por ter sido criada anteriormente, ela não será criada novamente.
+    */
+    modal.hide();
+}
+
+export async function loadModalInHtmlPage(){
+    const response = await fetch("/frontend/assets/components/modal.html");
+    const html = await response.text();
+    document.getElementById("modalComponent").innerHTML = html;
+}
+
+export function showLoadingModal(){
+    let loadingHtml = 
+    `
+        <div class="container d-flex justify-content-center align-items-center">
+            <img src="../assets/img/logo_sem_fundo.png" class="app-loading-element img-fluid" alt="Logo">
         </div>
-        <div class="modal-body"><p class="app-modal-txt">` + textContent + `</p></div>
-        <div class="modal-footer">`;
-    if(showNegativeButtonText){
-        modalFooterHtmlContent+=`
-        <button id="negative-btn-modal" type="button" class="app-btn app-medium-btn app-negative-btn-color" data-bs-dismiss="modal">`
-         + negativeButtonText + `</button>`;
-    }
-    
-    if(showPositiveButtonText){
-        modalFooterHtmlContent+=`
-        <button id="positive-btn-modal" type="button" class="app-btn  app-medium-btn app-positive-btn-color" data-bs-dismiss="modal">`
-         + positiveButtonText + `</button>`;
-    } 
-        
-    modalHTML += modalFooterHtmlContent + `
-        </div>
-        </div>
-    </div>
-    </div>
     `;
-
-    return modalHTML;
-
+    showModal("", loadingHtml, false, "", null, false, "", null);
 }
 
 export function addHtmlInShowedModal(htmlContent){
@@ -140,12 +85,42 @@ export function addHtmlInShowedModal(htmlContent){
     modalBody.insertAdjacentHTML("beforeend", htmlContent);
 }
 
+export function createCloneOfElement(elementId, replaceElement=true){
+    const oldElement = document.getElementById(elementId);
+
+    if (oldElement) {
+        const newElement = oldElement.cloneNode(true);
+        if(replaceElement){
+            oldElement.replaceWith(newElement);
+        }
+        return newElement;
+    }
+    return null;
+}
+
+function removeEventsOfPositiveModalButton(){
+    createCloneOfElement("modalPositiveBtn");
+
+}
+
+function removeEventsOfNegativeModalButton(){
+    createCloneOfElement("modalNegativeBtn");
+}
+
+function removeEventsOfModalButtons(){
+    removeEventsOfPositiveModalButton();
+    removeEventsOfNegativeModalButton();
+}
+
 function addEventsInModalButtons(negativeButtonFunc, positiveButtonFunc){
+    removeEventsOfModalButtons();
     if(negativeButtonFunc){
-        addEventInElement("negative-btn-modal", "click", negativeButtonFunc);
+        addEventInElement("modalNegativeBtn", "click", negativeButtonFunc);
+        
     }
     if(positiveButtonFunc){
-        addEventInElement("positive-btn-modal", "click", positiveButtonFunc);
+        addEventInElement("modalPositiveBtn", "click", positiveButtonFunc);
+
     }
 }
 
@@ -188,6 +163,19 @@ export async function haveRequest(endPoint, method = 'GET', reqJson=null, isJson
     -Timeout de rede
     -Problema de CORS que bloqueia a requisição
     -Usuário sem internet*/
-    throw new Error("Erro de rede: " + error.message);
+    throw new Error("Erro de rede: " + error.message + "<br>Navegador Online: " + navigator.onLine + "<br>Resultado Ping: " + await checkNetworkConnection());
+  }
+}
+
+async function checkNetworkConnection(){
+    try {
+        const res = await fetch(
+        "https://clients3.google.com/generate_204",
+        { method: "GET", mode: "no-cors" }
+    );
+
+    return "Passou";
+  } catch {
+    return "Falhou";
   }
 }

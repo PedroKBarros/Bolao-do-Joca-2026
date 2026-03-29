@@ -211,3 +211,19 @@ body{
 button:hover {
   filter: brightness(0.9); /* 10% mais escuro */
 }
+
+.app-loading-modal{
+    background-color: var(--app-blue);
+}
+
+.app-loading-element {
+  width: 100px;
+  height: 100px;
+  animation: loading-effect 1s infinite;
+}
+
+@keyframes loading-effect {
+  0% { opacity: 1; }
+  50% { opacity: 0.2; }
+  100% { opacity: 1; }
+}

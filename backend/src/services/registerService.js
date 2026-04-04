@@ -1,4 +1,5 @@
 const e = require('express');
+const common = require('./common.js')
 const userModel = require('../models/userModel');
 const bcrypt = require('bcrypt');
 const MIN_PASSWORD_CHARS = 5;
@@ -9,7 +10,7 @@ async function register(name, whatsappNumber, password, passwordConfirmation, is
     throw new Error('Nome não foi informado.');
   }
 
-  if(!isValidWhatsappNumber(whatsappNumber)){
+  if(!common.isValidWhatsappNumber(whatsappNumber)){
     throw new Error('Número do Whatsapp não é válido.');
   }
 
@@ -29,11 +30,6 @@ async function register(name, whatsappNumber, password, passwordConfirmation, is
   const password_hash = await bcrypt.hash(password, 10);
   await userModel.insertUser(name, whatsappNumber, password_hash, isAdmin);
 
-}
-
-function isValidWhatsappNumber(whatsappNumber) {
-  const regex = /^(?:\+?55\s?)?(?:\(?\d{2}\)?\s?)?9\d{4}-?\d{4}$/;
-  return regex.test(whatsappNumber);
 }
 
 module.exports = { register, MIN_PASSWORD_CHARS, MAX_PASSWORD_CHARS };

@@ -11,7 +11,8 @@ async function login(req, res) {
       res.cookie("auth_token", token, {
       httpOnly: true,       // JS não acessa
       secure: envFileHandle.isProductionEnv,
-      sameSite: "strict",   // proteção CSRF
+      sameSite: envFileHandle.isProductionEnv ? "none" : "lax",   // proteção CSRF
+      //TODO: se produção não for HTTPS, substituir "none" por "strict"
       maxAge: envFileHandle.cookieLifetime
     });
     res.status(200).json({ message: "Login efetuado com sucesso!" });

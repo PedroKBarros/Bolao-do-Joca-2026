@@ -18,7 +18,7 @@ async function login(whatsappNumber, password) {
   }
 
   const token = jwt.sign(
-    { userId: user.id, whatsappNumber: user.whatsapp_number },
+    { userId: user.id, whatsappNumber: user.whatsappNumber, userName: user.name, isAdmin: user.isAdmin },
     SECRET,
     { expiresIn: envFileHandle.cookieTokenLifetime }
   );

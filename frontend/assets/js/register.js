@@ -1,4 +1,4 @@
-import { showModal, addHtmlInShowedModal, haveRequest, goToPage, loadModalInHtmlPage, hideModal } from "./common.js";
+import { showModal, addHtmlInShowedModal, haveRequest, goToPage, loadModalInHtmlPage, showLoadingModal, hideModal } from "./common.js";
 import { PAGE_CONFIGS } from "./config.js";
 
 const msgTitle = "Cadastro";
@@ -97,11 +97,12 @@ function showWhatsappNumberConfirmation(){
     let whatsappNum = document.getElementById('whatsapp-num').value;
     showModal(msgTitle + " - Confirmação do Whatsapp", "<p>Você confirma o cadastro com número de Whatsapp '" + whatsappNum + 
         "'?<br><br><strong>Atenção:</strong> ao confirmar, o número não poderá ser alterado posteriormente.</p>", 
-        true, "CONFIRMAR", haveRegisterRequest); 
+        true, "CONFIRMAR", haveRegisterRequest, true, "CANCELAR", null, true); 
 }
 
 async function haveRegisterRequest(){
     try{
+        showLoadingModal();
         const response = await haveRequest("/register", "POST", JSON.stringify(registerDataParsed));
         if(response.isSuccessStatus){
             showModal(msgTitle, "<p>Cadastro realizado com sucesso!<br>Você será redicionado a página de login.</p>", 

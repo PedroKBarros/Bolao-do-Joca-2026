@@ -16,12 +16,16 @@ const registerData = `
 
 var registerDataParsed;
 
-document.getElementById('register-confirm')
-    .addEventListener('click', () => {
-        checkIfIsFilledData();
-});
+export function init(){
+    document.getElementById('register-confirm')
+        .addEventListener('click', () => {
+            checkIfIsFilledData();
+    });
 
-loadModalInHtmlPage();
+    loadModalInHtmlPage();
+
+}
+
 
 function checkIfIsFilledData(){
     let userNameField = document.getElementById("user-name");

@@ -1,6 +1,5 @@
 import { showModal, haveRequest, goToPage, showLoadingModal, loadModalInHtmlPage } from "./common.js";
 import { PAGE_CONFIGS } from "./config.js";
-import { goToUserSweepsPage } from "./userSweeps.js";
 
 const msgTitle = "Login";
 const loginData = `
@@ -10,14 +9,16 @@ const loginData = `
 }
   `;
 
-var loginDataParsed;
+export var loginDataParsed;
 
-loadModalInHtmlPage();
+export function init(){
+    loadModalInHtmlPage();
 
-document.getElementById('login-confirm')
-    .addEventListener('click', () => {
-        checkIfIsFilledData();
-});
+    document.getElementById('login-confirm')
+        .addEventListener('click', () => {
+            checkIfIsFilledData();
+    });
+}
 
 function checkIfIsFilledData(){
     let whatsappNumberField = document.getElementById("whatsapp-num");
@@ -48,7 +49,7 @@ async function haveLoginRequest(){
 
         const response = await haveRequest("/login", "POST", JSON.stringify(loginDataParsed));
         if(response.isSuccessStatus){
-            goToUserSweepsPage();
+            goToPage(PAGE_CONFIGS.PG_SWEEPS_NAME);
         }else{
             showModal(msgTitle, "<p>"+response.body.message+"</p>", 
                 true, "OK", null, false); 

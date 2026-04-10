@@ -32,6 +32,18 @@ npx jest --coverage "tests/database_tests/db.test.js"
 ### Extensão do Jest para VSCode:
 O Jest possui extensão oficial para o VSCode. O nome da extensão é "Jest" desenvolvida pela Orta e mantida pela comunidade.
 
+### Atualização dos Snapshots de Testes que Falharam:
+Estamos utilizando o recurso de snapshot do Jest, que torna desnecessária a necessidade de criamos e mantermos arquivos com os resultados esperados. Nesse contexto, quando um teste falha, caso a análise conclua que a falha foi devido a diferenças com o resultado esperado (snapshot) e que é necessário atualizar o resultado esperado, podemos fazer isso de duas formas:
+* Executar novamente o teste com a flag "-u" para que o snapshot seja atualizado:
+
+```
+npx jest tests/database_tests/db.test.js -u
+```
+* Executar comando que atualiza TODOS os snapshots de TODOS os testes que falharam:
+
+```
+npx jest -u
+```
 
 
 

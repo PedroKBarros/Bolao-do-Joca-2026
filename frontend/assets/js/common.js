@@ -1,4 +1,4 @@
-import { ENV_CONFIGS } from './config.js';
+import { PAGE_CONFIGS, getFrontendBaseUrl, getBackendBaseUrl } from './config.js';
 
 export function goToPage(htmlFileName){
     if(!String(htmlFileName).includes('.html')){
@@ -6,16 +6,20 @@ export function goToPage(htmlFileName){
     }
 
     if(String(htmlFileName).indexOf('/') === 0){
-        window.location.href = ENV_CONFIGS.BASE_URL_DEV_ENV + htmlFileName;
+        window.location.href = getFrontendBaseUrl() + htmlFileName;
     }else{
-        window.location.href = ENV_CONFIGS.BASE_URL_DEV_ENV + '/' + htmlFileName;
+        window.location.href = getFrontendBaseUrl() + '/' + htmlFileName;
     }     
+}
+
+export function goToHomePage(){
+    goToPage(PAGE_CONFIGS.PG_HOME_NAME);
 }
 
 export function showModal(title, htmlContent, showPositiveButton=true, positiveButtonText='CONFIRMAR', 
     positiveButtonCallFunc=null,  showNegativeButton=true, negativeButtonText='CANCELAR', 
     negativeButtonCallFunc=null, removeDefaultHideModalWhenClickPosBtn=false){
-
+    console.log("SHOW MODAL DISPARADO");
     document.getElementById('modalTitle').innerHTML = title;
     document.getElementById('modalHtmlContent').innerHTML = htmlContent;
     if(showPositiveButton){
@@ -54,20 +58,33 @@ export function showModal(title, htmlContent, showPositiveButton=true, positiveB
     addEventsInModalButtons(negativeButtonCallFunc, positiveButtonCallFunc);
 }
 
-export function hideModal()
-{
-    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById("appModal"));
-    /*
-    * Obs.: utilizar getOrCreateInstance garante que se a modal já estiver em memória, 
-    * por ter sido criada anteriormente, ela não será criada novamente.
-    */
+export function hideModal() {
+    const element = document.getElementById("appModal");
+    const modal = bootstrap.Modal.getOrCreateInstance(element);
+
+    if (!modal) return;
+
     modal.hide();
 }
-
 export async function loadModalInHtmlPage(){
-    const response = await fetch("/frontend/assets/components/modal.html");
+    await loadHtmlComponentInHtmlPage("modal", "modalComponent");
+}
+
+export async function loadHtmlComponentInHtmlPage(componentName, htmlPageElementIdToAddComponent, incrementElementInnerHtml=false){
+    const html = await getHtmlOfComponent(componentName);
+    if(!incrementElementInnerHtml){
+        document.getElementById(htmlPageElementIdToAddComponent).innerHTML = html;
+    }else{
+        document.getElementById(htmlPageElementIdToAddComponent).innerHTML += html;
+    }
+
+}
+
+export async function getHtmlOfComponent(componentName){
+    componentName = String(componentName).replace(".html", "");
+    const response = await fetch("/frontend/assets/components/" + componentName + ".html");
     const html = await response.text();
-    document.getElementById("modalComponent").innerHTML = html;
+    return html;
 }
 
 export function showLoadingModal(){
@@ -136,6 +153,7 @@ export async function haveRequest(endPoint, method = 'GET', reqJson=null, isJson
   try {
     let requestOptions = {
         method: method,
+        credentials: "include", //Garante que o navegador enviará possíveis cookies e auth headers, mesmo sendo cross-origin
         headers: { "Content-Type": "application/json" },
     };
     if(method !== 'GET'){
@@ -146,7 +164,7 @@ export async function haveRequest(endPoint, method = 'GET', reqJson=null, isJson
         }
 
     }
-    const response = await fetch("http://127.0.0.1:3000/api" + endPoint, requestOptions);
+    const response = await fetch(getBackendBaseUrl() + endPoint, requestOptions);
     const responseBody = await response.json(); // ou .json()
 
     return {

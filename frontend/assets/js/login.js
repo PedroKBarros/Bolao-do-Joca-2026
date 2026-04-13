@@ -11,8 +11,8 @@ const loginData = `
 
 export var loginDataParsed;
 
-export function init(){
-    loadModalInHtmlPage();
+export async function init(){
+    await loadModalInHtmlPage();
 
     document.getElementById('login-confirm')
         .addEventListener('click', () => {

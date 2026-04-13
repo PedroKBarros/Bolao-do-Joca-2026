@@ -1,4 +1,5 @@
-import { showModal, addHtmlInShowedModal, haveRequest, goToPage, loadModalInHtmlPage, showLoadingModal, hideModal } from "./common.js";
+import { showModal, addHtmlInShowedModal, haveRequest, goToPage, 
+    loadModalInHtmlPage, showLoadingModal, hideModal } from "./common.js";
 import { PAGE_CONFIGS } from "./config.js";
 
 const msgTitle = "Cadastro";
@@ -16,13 +17,13 @@ const registerData = `
 
 var registerDataParsed;
 
-export function init(){
+export async function init(){
     document.getElementById('register-confirm')
         .addEventListener('click', () => {
             checkIfIsFilledData();
     });
 
-    loadModalInHtmlPage();
+    await loadModalInHtmlPage();
 
 }
 

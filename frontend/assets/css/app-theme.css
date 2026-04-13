@@ -8,12 +8,15 @@
   --app-red: #920808;
   --app-font-family: 'Inter', Arial, sans-serif;
   --app-buttons-font-size: 12px;
+  --app-dropdown-font-size: 12px;
   --app-big-texts-font-size: 16px;
   --app-input-texts-font-size: 14px;
   --app-normal-texts-font-size: 14px;
+  --app-small-texts-font-size: 12px;
   --app-big-texts-font-weight: bold;
   --app-buttons-font-weight: bold;
   --app-buttons-border-radius: 10px;
+  --app-dropdown-font-weight: normal;
   --app-modal-title-font-size: 16px;
   --app-modal-title-font-weight: bold;
   --app-modal-text-font-size: 14px;
@@ -61,6 +64,16 @@ body{
 .app-big-txt{
     font-size: var(--app-big-texts-font-size);
     font-weight: var(--app-big-texts-font-weight);
+}
+
+.app-normal-txt{
+    font-size: var(--app-normal-texts-font-size);
+    font-weight: normal;
+}
+
+.app-small-txt{
+    font-size: var(--app-small-texts-font-size);
+    font-weight: normal;
 }
 
 .app-obs-txt{
@@ -118,34 +131,78 @@ body{
     margin: 0px 0px 0px;
 }
 
+.app-zero-height-separation{
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.app-zero-width-separation{
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
 .app-height-separation{
     padding: 0px 0px;
-    margin: 20px 0px 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.app-small-height-separation{
+    padding: 0px 0px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .app-top-separation{
     padding: 0px 0px;
-    margin: 20px 0px 0px;
+    margin-top: 20px;
+}
+
+.app-small-top-separation{
+    padding: 0px 0px;
+    margin-top: 10px;
 }
 
 .app-bottom-separation{
     padding: 0px 0px;
-    margin: 0px 0px 20px;
+    margin-bottom: 20px;
+}
+
+.app-small-bottom-separation{
+    padding: 0px 0px;
+    margin-bottom: 10px;
 }
 
 .app-width-separation{
     padding: 0px 0px;
-    margin: 0px 20px 0px 20px;
+    margin-right: 20px;
+    margin-left: 20px;
+}
+
+.app-small-width-separation{
+    padding: 0px 0px;
+    margin-right: 10px;
+    margin-left: 10px;
 }
 
 .app-left-separation{
     padding: 0px 0px;
-    margin: 0px 0px 0px 20px;
+    margin-left: 20px;
+}
+
+.app-small-left-separation{
+    padding: 0px 0px;
+    margin-left: 10px;
 }
 
 .app-right-separation{
     padding: 0px 0px;
-    margin: 0px 20px 0px 0px;
+    margin-right: 20px;
+}
+
+.app-small-right-separation{
+    padding: 0px 0px;
+    margin-right: 10px;
 }
 
 .app-btn{
@@ -226,4 +283,50 @@ button:hover {
   0% { opacity: 1; }
   50% { opacity: 0.2; }
   100% { opacity: 1; }
+}
+
+.app-dropdown {
+    border: 0px;
+    border-radius: 10px;
+    font-weight: var(--app-dropdown-font-weight);
+    font-size: var(--app-dropdown-font-size);
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: start;
+}
+
+.app-list-item {
+    border: 1px solid #000000;
+    border-radius: 10px;
+    min-width: 300px;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 20px
+}
+
+.app-list-item-title {
+    margin: 0px 0px 0px;
+    font-size: var(--app-medium-texts-font-size);
+    font-weight: var(--app-medium-texts-font-weight);
+    color: var(--app-blue);
+}
+
+.app-list-item-content {
+    margin: 0px 0px 0px;
+    font-size: var(--app-small-texts-font-size);
+    font-weight: normal;
+}
+
+.app-list-item-footer {
+    margin-bottom: 10px;
+    font-size: var(--app-small-texts-font-size);
+    font-weight: normal;
+}
+
+.app-list-item-icon-btn {
+    width: 25px;
+    height: 25px;
+    margin-top: 10px;
 }

@@ -88,4 +88,29 @@ async function getAllSweepstakes(){
     return undefined;
 }
 
-module.exports = { getSweepstakesDataFromUserId, getAllSweepstakes }
+async function insertSweepstake(name, keywordHash, quota, whatsappGroupLink, startDateParticipation, 
+    endDateParticipation,  isClosed, status, authorUserId){
+  const sql = 'INSERT INTO SWEEPSTAKE (name, keyword_hash, quota, group_link, start_date_participation, final_date_participation, is_closed, status, author_user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+
+  await db_connection.execute(sql, [name, keywordHash, quota, whatsappGroupLink, 
+    startDateParticipation, endDateParticipation, isClosed, status, authorUserId]);
+}
+
+async function findSweepstake(sweepsName) {
+  //Observação: a collation da coluna "name" é "utf8mb4_0900_ai_ci". 
+  // Isso significa que ela ignora acentos e não diferencia por 
+  // letras maiúsculas e minúsculas na comparação e ordenação.
+  const sql = `SELECT * FROM SWEEPSTAKE WHERE SWEEPSTAKE.name = ?`;
+
+  const [rows, fields] = await db_connection.execute(sql, [sweepsName]);
+  if(rows.length)
+  {
+      return {name: rows[0].name, keywordHash: rows[0].keyword_hash, quota: rows[0].quota, 
+        whatsappGroupLink: rows[0].group_link, startDateParticipation: rows[0].start_date_participation, 
+        finalDateParticipation: rows[0].final_date_participation, isClosed: rows[0].is_closed, status: rows[0].status, 
+        authorUserId: rows[0].author_user_id};
+  }
+  return undefined;
+}
+
+module.exports = { getSweepstakesDataFromUserId, getAllSweepstakes, insertSweepstake, findSweepstake }

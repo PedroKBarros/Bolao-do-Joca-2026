@@ -5,8 +5,22 @@ import { PAGE_CONFIGS } from "./config.js";
 const msgTitle = "Bolões";
 const adminSweepsListTitle = "Bolões do Sistema";
 const userSweepsListTitle = "Seus Bolões";
+var tryCreateSweeps = false;
 var userData;
 var sweepsData;
+
+const newSweepsData = `
+{
+    "sweepsName": "",
+    "sweepsKeyword": "",
+    "sweepsQuota": "",
+    "sweepsStartDateParticipation": "",
+    "sweepsEndDateParticipation": "",
+    "sweepsWhatsappGroupLink": ""
+}
+  `;
+
+var newSweepsDataParsed;
 
 export async function init(){
     await loadModalInHtmlPage();
@@ -16,6 +30,7 @@ export async function init(){
 async function definePageUI() {
     await haveUserDataRequest();
     await haveSweepstakesDataRequest();
+    defineButtonEvents();
     defineWelcomeMsgUI();
     if(userData.isAdmin === 0){
         document.getElementById("create-sweepstacke").hidden = true;
@@ -24,6 +39,15 @@ async function definePageUI() {
     // caso ele possua / esteja em bolões, exibir a lista (componentizar a lista)
 
     defineSweepsListUI();
+}
+
+function defineButtonEvents(){
+    document.getElementById('create-sweepstacke')
+        .addEventListener('click', () => {
+            showModalCreateSweepstake();
+    });
+
+    //TODO: definir evento do botão "ENTRAR EM BOLÃO"
 }
 
 async function defineSweepsListUI(){
@@ -136,4 +160,222 @@ async function haveSweepstakesDataRequest(){
             "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br></p>"+error.message, 
             true, "OK", goToHomePage, false); 
     }
+}
+
+async function haveCreateSweepsRequest(){
+    try{
+        showLoadingModal();
+        const response = await haveRequest("/sweeps", "POST", JSON.stringify(newSweepsDataParsed));
+        if(response.isSuccessStatus){
+            showModal(msgTitle, "<p>Bolão criado com sucesso!<br>Você será redicionado a página dele.</p>", 
+                true, "OK", null, false);
+        }else{
+            console.log(response.body.message);
+            showModalCreateSweepstake(response.body.message);
+        }
+    }catch(error){
+        /*
+            Só entra aqui se for erro de rede, ou seja, se ocorrer:
+            -Servidor offline
+            -Conexão recusada
+            -DNS não encontrado
+            -Timeout de rede
+            -Problema de CORS que bloqueia a requisição
+            -Usuário sem internet
+        */
+        showModal(msgTitle + " - Erro", "<p><strong>Ocorreu um erro inesperado ao tentar criar o bolão.</strong>"+
+            "<br>Sugerimos que verifique se você está conectado a internet ou aguarde 10 minutos antes de tentar novamente."+
+            "<br>Caso o problema persista, envie uma mensagem no grupo de Whatsapp do bolão informando o problema.<br>"+
+            "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br></p>"+error.message, 
+            true, "OK", null, false); 
+    }
+
+}
+
+
+function showModalCreateSweepstake(warningMsg=''){
+    tryCreateSweeps = true;
+    showModal("Criar Bolão", generateModalCreateSweepsHtml(warningMsg), true, "CRIAR", 
+    createSweepstake, true, "CANCELAR", null, true);
+
+    //Verificando se alguma tentativa de realizar a requisição de criação 
+    // já havia sido realizada, pois, nesse caso, temos que exibir a modal 
+    // com os valores nos campos e descer até o elemento warning-msg:
+    if(tryCreateSweeps){
+        document.getElementById("sweeps-name").value = newSweepsDataParsed.sweepsName;
+        document.getElementById("sweeps-keyword").value = newSweepsDataParsed.sweepsKeyword;
+        document.getElementById("sweeps-quota").value = newSweepsDataParsed.sweepsQuota;
+        document.getElementById("sweeps-start-partic-date").value = newSweepsDataParsed.sweepsStartDateParticipation;
+        document.getElementById("sweeps-end-partic-date").value = newSweepsDataParsed.sweepsEndDateParticipation;
+        document.getElementById("sweeps-wpp-group-link").value = newSweepsDataParsed.sweepsWhatsappGroupLink;
+        document.getElementById("warning-msg").scrollIntoView();
+    }
+}
+
+async function createSweepstake(){
+    const sweepsName = document.getElementById("sweeps-name");
+    const sweepsKeyword = document.getElementById("sweeps-keyword");
+    const sweepsQuota = document.getElementById("sweeps-quota");
+    const sweepsStartParticDate = document.getElementById("sweeps-start-partic-date");
+    const sweepsEndParticDate = document.getElementById("sweeps-end-partic-date");
+    const sweepsWhatsppGroupLink = document.getElementById("sweeps-wpp-group-link");
+    const warningMsg = document.getElementById("warning-msg");
+    let existInvalidDate = false;
+
+    if(sweepsName.value === '' && !existInvalidDate){
+        warningMsg.innerText = "O nome do bolão não foi preenchido.";
+        existInvalidDate = true;
+    }
+
+    if(sweepsKeyword.value === '' && !existInvalidDate){    
+        warningMsg.innerText = "A palavra-chave do bolão não foi preenchida.";
+        existInvalidDate = true;
+    }
+
+    if(sweepsQuota.value === '' && !existInvalidDate){
+        warningMsg.innerText = "A Jocota$ não foi preenchida. Caso o bolão não possua cota, informe valor zero.";
+        existInvalidDate = true;
+    }
+
+    if((sweepsStartParticDate.value === '' || 
+        sweepsEndParticDate.value === '')  && !existInvalidDate){
+        warningMsg.innerText = "A data inicial e/ou a data final do período de participação não foram preenchidas.";
+        existInvalidDate = true;
+    }
+
+    if(sweepsWhatsppGroupLink.value === ''  && !existInvalidDate){ 
+        warningMsg.innerText = "O link do grupo de Whatsapp do bolão não preenchido.";
+        existInvalidDate = true;
+    }
+
+    if(String(sweepsName.value).toUpperCase() === String(sweepsKeyword.value).toUpperCase()  && !existInvalidDate){
+        warningMsg.innerText = "A palavra-chave não pode ser igual ao nome do bolão.";
+        existInvalidDate = true;      
+    }
+
+    if(existInvalidDate){
+        showWarningMsg(warningMsg);
+        existInvalidDate=false;
+        return;
+    }
+
+    //Ocultando warning-msg e modal:
+    warningMsg.classList.add("d-none");
+    hideModal();
+
+    console.log(sweepsName);
+    storageNewSweepstakeData(sweepsName.value, sweepsKeyword.value, sweepsQuota.value, sweepsStartParticDate.value, 
+        sweepsEndParticDate.value, sweepsWhatsppGroupLink.value);
+    
+    await haveCreateSweepsRequest(warningMsg);
+}
+
+function showWarningMsg(warningMsg){
+    warningMsg.classList.remove("d-none");
+    warningMsg.scrollIntoView();
+}
+
+function storageNewSweepstakeData(sweepsName, sweepsKeyword, sweepsQuota, 
+    sweepsStartDateParticipation, sweepsEndDateParticipation, sweepsWhatsappGroupLink){
+
+    newSweepsDataParsed = JSON.parse(newSweepsData);
+    newSweepsDataParsed.sweepsName = sweepsName;
+    newSweepsDataParsed.sweepsKeyword = sweepsKeyword;
+    newSweepsDataParsed.sweepsQuota = sweepsQuota;
+    newSweepsDataParsed.sweepsStartDateParticipation = sweepsStartDateParticipation;
+    newSweepsDataParsed.sweepsEndDateParticipation = sweepsEndDateParticipation;
+    newSweepsDataParsed.sweepsWhatsappGroupLink = sweepsWhatsappGroupLink;
+
+    console.log(newSweepsDataParsed);
+
+}
+
+function generateModalCreateSweepsHtml(warningMsg=''){
+    let warningMsgClass='';
+    if(warningMsg === ''){
+        warningMsgClass = "\"app-alert-txt-block app-top-separation d-none\"";
+    }else{
+        warningMsgClass = "\"app-alert-txt-block app-top-separation\"";
+    }
+
+    let html = `
+            <!-- A div container abaixo serve apenas para que as labels fiquem alinhadas 
+             a esquerda, não sendo necessário em todas as páginas.
+             Obs.: ela só cumprirá esse objetivo se os elementos de maior 
+             largura da página forem os campos. -->
+            <div class="container app-restrict-container mx-auto">
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-start">
+                        <label for="sweeps-name" class="app-big-txt app-yellow-txt">Nome:</label>
+                    </div>
+                </div>
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-center">
+                        <input type="text" class="app-field app-big-field" id="sweeps-name" placeholder="">
+                    </div>
+                </div>
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-start">
+                        <label for="sweeps-keyword" class="app-big-txt app-yellow-txt app-top-separation">Palavra-chave:</label>
+                    </div>
+                </div>
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-center">
+                        <input type="text" class="app-field app-big-field" id="sweeps-keyword" placeholder="">
+                    </div>
+                </div>
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-start">
+                        <label for="sweeps-quota" class="app-big-txt app-yellow-txt app-top-separation">Jocota$:</label>
+                    </div>
+                </div>
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-center">
+                        <input type="number" class="app-field app-big-field" id="sweeps-quota" placeholder="">
+                    </div>
+                </div>
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-start">
+                        <p class="app-big-txt app-yellow-txt app-top-separation">Período para participar do bolão:</p>
+                    </div>
+                </div>
+                <div class="row d-flex align-items-center">
+                    <div class="col-auto text-start">
+                        <label for="sweeps-start-partic-date" class="app-big-txt app-yellow-txt">Data Inicial:</label>
+                    </div>
+                </div>
+                <div class="row d-flex align-items-center">
+                    <div class="col-auto text-start">
+                        <input type="date" class="app-field app-big-field" id="sweeps-start-partic-date" placeholder="">
+                    </div>
+                </div>
+                <div class="row d-flex align-items-center">
+                    <div class="col-auto text-start">
+                        <label for="sweeps-end-partic-date" class="app-big-txt app-yellow-txt app-top-separation">Data Final:</label>
+                    </div>
+                </div>
+                <div class="row d-flex align-items-center">
+                    <div class="col-auto text-start">
+                        <input type="date" class="app-field app-big-field" id="sweeps-end-partic-date" placeholder="">
+                    </div>
+                </div>
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-start">
+                        <label for="sweeps-wpp-group-link" class="app-big-txt app-yellow-txt app-top-separation">Link do Grupo do Whatsapp:</label>
+                    </div>
+                </div>
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-center">
+                        <input type="text" class="app-field app-big-field" id="sweeps-wpp-group-link" placeholder="">
+                    </div>
+                </div>
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-start">
+                        <p id="warning-msg" class=` + warningMsgClass + `style="width: 300px;">` +
+                            warningMsg +
+                 `</p>
+                    </div>
+                </div>                
+            </div>`;
+    return html;
 }

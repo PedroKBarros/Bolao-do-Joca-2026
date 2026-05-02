@@ -14,4 +14,22 @@ async function getSweepstakes(req, res) {
   }
 }
 
-module.exports = { getSweepstakes };
+async function createSweepstake(req, res) {
+  try {
+    //Obtendo token:
+    const token = req.cookies.auth_token;
+
+    const { sweepsName, sweepsKeyword, sweepsQuota, sweepsStartDateParticipation, 
+      sweepsEndDateParticipation, sweepsWhatsappGroupLink } = req.body;
+
+    await sweepsServ.createSweepstake(token, sweepsName, sweepsKeyword, sweepsQuota, 
+          sweepsStartDateParticipation, sweepsEndDateParticipation, sweepsWhatsappGroupLink);
+
+    res.status(200).json({ message: "Bolão criado com sucesso!" });
+  } catch (err) {
+    console.log("Retorno");
+    res.status(400).json({ message: err.message });
+  }
+}
+
+module.exports = { getSweepstakes, createSweepstake };

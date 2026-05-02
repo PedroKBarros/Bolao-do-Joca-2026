@@ -1,1 +1,0 @@
-DELETE FROM Users WHERE Users.name='user test';

@@ -298,7 +298,7 @@ button:hover {
 .app-list-item {
     border: 1px solid #000000;
     border-radius: 10px;
-    min-width: 300px;
+    width: 300px;
     padding-left: 10px;
     padding-right: 10px;
     margin-left: 10px;
@@ -329,4 +329,17 @@ button:hover {
     width: 25px;
     height: 25px;
     margin-top: 10px;
+}
+
+.app-alert-txt-block {
+    font-size: var(--app-normal-texts-font-size);
+    font-weight: normal;
+    background-color: var(--app-white);
+    border: 3px solid var(--app-red);
+    border-radius: 10px;
+    box-shadow: 2px 2px 2px var(--app-red);
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+    padding-top: 10px;
 }

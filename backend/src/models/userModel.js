@@ -20,7 +20,7 @@ async function findByWhatsappNumber(whatsappNumber, returnBasicData=false) {
 async function insertUser(name, whatsappNumber, passwordHash, isAdmin=0){
   const sql = 'INSERT INTO Users (name, whatsapp_number, password_hash, is_admin) VALUES (?, ?, ?, ?)';
 
-  db_connection.execute(sql, [name, whatsappNumber, passwordHash, isAdmin]);
+  await db_connection.execute(sql, [name, whatsappNumber, passwordHash, isAdmin]);
 }
 
 module.exports = { findByWhatsappNumber, insertUser };

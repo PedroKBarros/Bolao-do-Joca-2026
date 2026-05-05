@@ -34,9 +34,9 @@ async function definePageUI() {
     defineWelcomeMsgUI();
     if(userData.isAdmin === 0){
         document.getElementById("create-sweepstacke").hidden = true;
+    }else{
+        document.getElementById("sigin-sweepstacke").hidden = true;        
     }
-    //TODO: obter os bolões do usuário (criar end-point + query) e 
-    // caso ele possua / esteja em bolões, exibir a lista (componentizar a lista)
 
     defineSweepsListUI();
 }
@@ -72,7 +72,6 @@ async function defineSweepsListUI(){
 
 async function constructSweepsListUI(){
     const listItemHtml = await getHtmlOfComponent("listItem");
-
     //Add list component in page:
     await loadHtmlComponentInHtmlPage("list", "sweepsArea");
     
@@ -88,11 +87,18 @@ async function constructSweepsListUI(){
     
     //Add list items in list:
     let listArea = document.getElementById("listItemsArea");
+    let startPartDate;
+    let finalPartDate;
     for(let i=0;i<sweepsData.length;i++){
         listArea.innerHTML += listItemHtml;
-        document.getElementsByName("listItemTitle")[i].innerText = sweepsData[i].name;
-        document.getElementsByName("listItemContentPr1")[i].innerText = "Criado por: " + sweepsData[i].author_name;
-        document.getElementsByName("listItemContentPr2")[i].innerText = "Status: " + sweepsData[i].status;
+        document.getElementsByName("listItemTitle")[i].innerText = sweepsData[i].name + " (" + sweepsData[i].total_users + ")";
+        document.getElementsByName("listItemContentPr1")[i].innerText = "Criado por: " + sweepsData[i].author_name + " | Jocota$: " + sweepsData[i].quota;
+        if(sweepsData[i].start_date_participation !== null && sweepsData[i].final_date_participation !== null){
+            startPartDate = new Date(sweepsData[i].start_date_participation);
+            finalPartDate = new Date(sweepsData[i].final_date_participation);
+            document.getElementsByName("listItemContentPr2")[i].innerText = "Período Participação: " + startPartDate.toLocaleDateString() + " à " + finalPartDate.toLocaleDateString();
+        }
+
     }
 
 }
@@ -167,8 +173,9 @@ async function haveCreateSweepsRequest(){
         showLoadingModal();
         const response = await haveRequest("/sweeps", "POST", JSON.stringify(newSweepsDataParsed));
         if(response.isSuccessStatus){
-            showModal(msgTitle, "<p>Bolão criado com sucesso!<br>Você será redicionado a página dele.</p>", 
-                true, "OK", null, false);
+            showModal(msgTitle, "<p>Bolão criado com sucesso!<br>A página será atualizada para que ele passe a ser exibido na lista.</p>", 
+                false, "", null, false);
+            setTimeout(function() {location.reload();}, 3000);
         }else{
             console.log(response.body.message);
             showModalCreateSweepstake(response.body.message);

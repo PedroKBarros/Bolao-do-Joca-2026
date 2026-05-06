@@ -6,4 +6,11 @@ async function insertSweepsUser(sweepsName, userId){
   await db_connection.execute(sql, [sweepsName, userId]);
 }
 
-module.exports = { insertSweepsUser }
+async function isUserInSweepstake(sweepsName, userId) {
+  const sql = 'SELECT s.user_id FROM SWEEPSTAKE_USERS s WHERE s.sweepstake_name = ? and s.user_id = ?';
+  const [rows] = await db_connection.execute(sql, [sweepsName, userId]);
+  
+  return rows.length;
+}
+
+module.exports = { insertSweepsUser, isUserInSweepstake }

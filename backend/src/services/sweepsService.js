@@ -178,6 +178,11 @@ async function joinSweepstake(userLoggedInToken, sweepsName, sweepsKeyword) {
         throw new Error('A palavra-chave não foi informada.');
     }
 
+    //Verificando se usuário já não está participando do bolão:
+    if(await sweepsUserModel.isUserInSweepstake(sweepsName, userId)){
+        throw new Error('Você já está participando desse bolão!');        
+    }
+
     //Verificando se a keyword informada é a keyword correta:
     sweepsData = await sweepsModel.getSweepstakesDataFromName(sweepsName);
     const keywordMatch = await bcrypt.compare(sweepsKeyword, sweepsData[0].keyword_hash);

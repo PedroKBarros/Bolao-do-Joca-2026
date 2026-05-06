@@ -216,3 +216,19 @@ export function setDefaultDropdownSelectedItem(dropdownId, dropdownListItemsId, 
 
     dropdownButton.innerText = dropdownItems[defaultItemIndex].innerText;
 }
+
+export function formatUrlToExternUrl(url, useHTTPS=true, addWWW=true){
+    if(String(url).indexOf("http") === -1 && String(url).indexOf("https") === -1){
+        url = useHTTPS ? "https://"+url : "http://"+url;
+    }
+
+    if(addWWW){
+        if(String(url).indexOf("www") === -1){
+            let urlParts = String(url).split("//");
+            url = urlParts[0] + "//www." + urlParts[1];
+        }
+    }
+
+
+    return url;
+}

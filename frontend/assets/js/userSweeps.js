@@ -1,6 +1,7 @@
 import { goToPage, showLoadingModal, goToHomePage, haveRequest, loadModalInHtmlPage, 
     showModal, hideModal, loadHtmlComponentInHtmlPage, getHtmlOfComponent, 
-    addEventsToUpdateDropdownSelectedItem, setDefaultDropdownSelectedItem} from "./common.js";
+    addEventsToUpdateDropdownSelectedItem, setDefaultDropdownSelectedItem,
+    formatUrlToExternUrl} from "./common.js";
 import { PAGE_CONFIGS } from "./config.js";
 
 const msgTitle = "Bolões";
@@ -105,16 +106,22 @@ async function constructSweepsListUI(){
     let listArea = document.getElementById("listItemsArea");
     let startPartDate;
     let finalPartDate;
+    let wppLink;
     for(let i=0;i<sweepsData.length;i++){
         listArea.innerHTML += listItemHtml;
         document.getElementsByName("listItemTitle")[i].innerText = sweepsData[i].name + " (" + sweepsData[i].total_users + ")";
         
         document.getElementsByName("listItemContentPr1")[i].innerText = "Criado por: " + sweepsData[i].author_name + " | Jocota$: " + sweepsData[i].quota;
         
+        //Add id nos botões dos cards dos boloes:
         document.getElementsByName("listItemFooterContent1")[i].children[0].id = "btnFill_" + sweepsData[i].name;
         document.getElementsByName("listItemFooterContent2")[i].children[0].id = "btnDownload_" + sweepsData[i].name;
         document.getElementsByName("listItemFooterContent3")[i].children[0].id = "btnWppLink_" + sweepsData[i].name;
         
+        //Add link whatsapp:
+        wppLink = formatUrlToExternUrl(sweepsData[i].group_link, true, false);
+        document.getElementsByName("listItemFooterContent3")[i].children[0].setAttribute("href", wppLink);
+
         if(sweepsData[i].start_date_participation !== null && sweepsData[i].final_date_participation !== null){
             startPartDate = new Date(sweepsData[i].start_date_participation);
             finalPartDate = new Date(sweepsData[i].final_date_participation);

@@ -285,7 +285,7 @@ button:hover {
   100% { opacity: 1; }
 }
 
-.app-dropdown {
+.app-filter-dropdown {
     border: 0px;
     border-radius: 10px;
     font-weight: var(--app-dropdown-font-weight);
@@ -294,6 +294,9 @@ button:hover {
     padding-right: 10px;
     text-align: start;
 }
+
+
+
 
 .app-list-item {
     border: 1px solid #000000;

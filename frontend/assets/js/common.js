@@ -197,3 +197,22 @@ async function checkNetworkConnection(){
     return "Falhou";
   }
 }
+
+export function addEventsToUpdateDropdownSelectedItem(dropdownId, dropdownListItemsId){
+    const dropdownItems = document.getElementById(dropdownListItemsId).children;
+    const dropdownButton = document.getElementById(dropdownId);
+
+    for(let i =0;i<dropdownItems.length;i++){
+        dropdownItems[i].addEventListener('click', function(e) {
+            e.preventDefault(); // evita comportamento padrão do link
+            dropdownButton.textContent = this.textContent;
+        });
+    }
+}
+
+export function setDefaultDropdownSelectedItem(dropdownId, dropdownListItemsId, defaultItemIndex){
+    const dropdownItems = document.getElementById(dropdownListItemsId).children;
+    const dropdownButton = document.getElementById(dropdownId);
+
+    dropdownButton.innerText = dropdownItems[defaultItemIndex].innerText;
+}

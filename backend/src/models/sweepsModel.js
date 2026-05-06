@@ -88,6 +88,66 @@ async function getAllSweepstakes(){
     return undefined;
 }
 
+async function getAllSweepstakesNames(){
+  const sql = `
+  SELECT 
+      s.name
+  FROM SWEEPSTAKE s
+  GROUP BY s.name
+  ORDER BY s.name ASC;
+    `;
+
+    const [rows] = await db_connection.execute(sql);
+    if(rows.length){
+      const result = rows;
+      return result;
+    }
+
+    return undefined;
+}
+
+async function getSweepstakesDataFromName(sweepsName){
+  const sql = `
+  SELECT 
+      s.name,
+      s.keyword_hash,
+      s.quota,
+      s.group_link,
+      s.start_date_participation,
+      s.final_date_participation,
+      s.is_closed,
+      s.status,
+      s.author_user_id,
+      u.name AS author_name,
+      COUNT(su.id) AS total_users
+  FROM SWEEPSTAKE s
+  JOIN USERS u
+      ON u.id = s.author_user_id
+  JOIN SWEEPSTAKE_USERS su 
+      ON su.sweepstake_name = s.name
+  WHERE s.name = ?
+  GROUP BY 
+      s.name,
+      s.keyword_hash,
+      s.quota,
+      s.group_link,
+      s.start_date_participation,
+      s.final_date_participation,
+      s.is_closed,
+      s.status,
+      u.name;
+    `;
+
+    const [rows] = await db_connection.execute(sql, [sweepsName]);
+    console.log(rows);
+    if(rows.length){
+      const result = rows;
+      return result;
+    }
+
+    return undefined;
+}
+
 async function insertSweepstake(name, keywordHash, quota, whatsappGroupLink, startDateParticipation, 
     endDateParticipation,  isClosed, status, authorUserId){
   const sql = 'INSERT INTO SWEEPSTAKE (name, keyword_hash, quota, group_link, start_date_participation, final_date_participation, is_closed, status, author_user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
@@ -113,4 +173,5 @@ async function findSweepstake(sweepsName) {
   return undefined;
 }
 
-module.exports = { getSweepstakesDataFromUserId, getAllSweepstakes, insertSweepstake, findSweepstake }
+module.exports = { getSweepstakesDataFromUserId, getAllSweepstakes, 
+  getAllSweepstakesNames, insertSweepstake, findSweepstake, getSweepstakesDataFromName }

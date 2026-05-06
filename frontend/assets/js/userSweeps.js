@@ -1,13 +1,16 @@
 import { goToPage, showLoadingModal, goToHomePage, haveRequest, loadModalInHtmlPage, 
-    showModal, hideModal, loadHtmlComponentInHtmlPage, getHtmlOfComponent} from "./common.js";
+    showModal, hideModal, loadHtmlComponentInHtmlPage, getHtmlOfComponent, 
+    addEventsToUpdateDropdownSelectedItem, setDefaultDropdownSelectedItem} from "./common.js";
 import { PAGE_CONFIGS } from "./config.js";
 
 const msgTitle = "Bolões";
 const adminSweepsListTitle = "Bolões do Sistema";
 const userSweepsListTitle = "Seus Bolões";
 var tryCreateSweeps = false;
+var trySiginSweeps = false;
 var userData;
 var sweepsData;
+var allSweepsNamesData;
 
 const newSweepsData = `
 {
@@ -20,7 +23,15 @@ const newSweepsData = `
 }
   `;
 
+const joinSweepsData = `
+{
+    "sweepsName": "",
+    "sweepsKeyword": ""
+}
+  `;
+
 var newSweepsDataParsed;
+var joinSweepsDataParsed;
 
 export async function init(){
     await loadModalInHtmlPage();
@@ -30,12 +41,13 @@ export async function init(){
 async function definePageUI() {
     await haveUserDataRequest();
     await haveSweepstakesDataRequest();
+    await haveAllSweepstakesNameRequest(); //Dados utilizados na modal para entrar em bolão.
     defineButtonEvents();
     defineWelcomeMsgUI();
     if(userData.isAdmin === 0){
         document.getElementById("create-sweepstacke").hidden = true;
     }else{
-        document.getElementById("sigin-sweepstacke").hidden = true;        
+        document.getElementById("join-sweepstacke").hidden = true;        
     }
 
     defineSweepsListUI();
@@ -47,7 +59,11 @@ function defineButtonEvents(){
             showModalCreateSweepstake();
     });
 
-    //TODO: definir evento do botão "ENTRAR EM BOLÃO"
+    document.getElementById('join-sweepstacke')
+        .addEventListener('click', () => {
+            showModalSiginSweepstake();
+    });
+
 }
 
 async function defineSweepsListUI(){
@@ -92,7 +108,13 @@ async function constructSweepsListUI(){
     for(let i=0;i<sweepsData.length;i++){
         listArea.innerHTML += listItemHtml;
         document.getElementsByName("listItemTitle")[i].innerText = sweepsData[i].name + " (" + sweepsData[i].total_users + ")";
+        
         document.getElementsByName("listItemContentPr1")[i].innerText = "Criado por: " + sweepsData[i].author_name + " | Jocota$: " + sweepsData[i].quota;
+        
+        document.getElementsByName("listItemFooterContent1")[i].children[0].id = "btnFill_" + sweepsData[i].name;
+        document.getElementsByName("listItemFooterContent2")[i].children[0].id = "btnDownload_" + sweepsData[i].name;
+        document.getElementsByName("listItemFooterContent3")[i].children[0].id = "btnWppLink_" + sweepsData[i].name;
+        
         if(sweepsData[i].start_date_participation !== null && sweepsData[i].final_date_participation !== null){
             startPartDate = new Date(sweepsData[i].start_date_participation);
             finalPartDate = new Date(sweepsData[i].final_date_participation);
@@ -149,6 +171,35 @@ async function haveSweepstakesDataRequest(){
             hideModal();
         }else{
             throw new Error("Requisição GET /sweeps retornou status " + response.status + ".");           
+        }
+    }catch(error){
+        /*
+            Só entra aqui se for erro de rede, ou seja, se ocorrer:
+            -Servidor offline
+            -Conexão recusada
+            -DNS não encontrado
+            -Timeout de rede
+            -Problema de CORS que bloqueia a requisição
+            -Usuário sem internet
+        */
+        showModal(msgTitle + " - Erro", "<p><strong>Ocorreu um erro inesperado ao tentar obter os bolões do usuário logado.</strong>"+
+            "<br>Sugerimos que verifique se você está conectado a internet ou aguarde 10 minutos antes de tentar novamente."+
+            "<br>Caso o problema persista, envie uma mensagem no grupo de Whatsapp do bolão informando o problema.<br>"+
+            "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br></p>"+error.message, 
+            true, "OK", goToHomePage, false); 
+    }
+}
+
+async function haveAllSweepstakesNameRequest(){
+    try{
+        showLoadingModal();
+        const response = await haveRequest("/sweeps/names", "GET");
+        if(response.isSuccessStatus){
+            allSweepsNamesData = response.body;
+            console.log(sweepsData);
+            hideModal();
+        }else{
+            throw new Error("Requisição GET /sweeps/names retornou status " + response.status + ".");           
         }
     }catch(error){
         /*
@@ -385,4 +436,157 @@ function generateModalCreateSweepsHtml(warningMsg=''){
                 </div>                
             </div>`;
     return html;
+}
+
+async function showModalSiginSweepstake(warningMsg=''){
+    trySiginSweeps = true;
+    showModal("Entrar em Bolão", generateModalSiginSweepsHtml(warningMsg), true, "ENTRAR", 
+    joinSweepstake, true, "CANCELAR", null, true);
+
+    let sweepsDropdownListItems = document.getElementById("sweeps-name-list");
+    if(allSweepsNamesData.length>0){
+        //Adicionando o nome das sweeps na dropdown:
+        for(let i =0;i<allSweepsNamesData.length;i++){
+            sweepsDropdownListItems.innerHTML+=`<li><p class="listDropdownFilterOption app-small-txt dropdown-item">`+allSweepsNamesData[i].name+`</p></li>`;
+        }
+        addEventsToUpdateDropdownSelectedItem("sweeps-name", "sweeps-name-list");
+        setDefaultDropdownSelectedItem("sweeps-name", "sweeps-name-list", 0);
+    }else{
+        sweepsDropdownListItems.parentElement.children[0].innerText = "";
+    }
+
+    //Verificando se alguma tentativa de realizar a requisição de entrada 
+    // já havia sido realizada, pois, nesse caso, temos que exibir a modal 
+    // com os valores nos campos e descer até o elemento warning-msg:
+    if(trySiginSweeps){
+        document.getElementById("sweeps-name").innerText = joinSweepsDataParsed.sweepsName;
+        document.getElementById("sweeps-keyword").value = joinSweepsDataParsed.sweepsKeyword;
+        document.getElementById("warning-msg").scrollIntoView();
+    }
+}
+
+function generateModalSiginSweepsHtml(warningMsg=''){
+    let warningMsgClass='';
+    if(warningMsg === ''){
+        warningMsgClass = "\"app-alert-txt-block app-top-separation d-none\"";
+    }else{
+        warningMsgClass = "\"app-alert-txt-block app-top-separation\"";
+    }
+
+    let html = `
+            <!-- A div container abaixo serve apenas para que as labels fiquem alinhadas 
+             a esquerda, não sendo necessário em todas as páginas.
+             Obs.: ela só cumprirá esse objetivo se os elementos de maior 
+             largura da página forem os campos. -->
+            <div class="container app-restrict-container mx-auto">
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-start">
+                        <label for="sweeps-name" class="app-big-txt app-yellow-txt">Selecione o Bolão:</label>
+                    </div>
+                </div>
+
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="dropdown">
+                        <button id="sweeps-name" class="app-field app-big-field app-white-bg dropdown-toggle text-start" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Dropdown option
+                        </button>
+                        <ul id="sweeps-name-list" class="dropdown-menu">
+
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-start">
+                        <label for="sweeps-keyword" class="app-big-txt app-yellow-txt app-top-separation">Palavra-chave do Bolão:</label>
+                    </div>
+                </div>
+                <div class="row d-flex justify-content-start align-items-start">
+                    <div class="col-12 text-start">
+                        <input type="text" class="app-field app-big-field" id="sweeps-keyword" placeholder="">
+                    </div>
+                </div>
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-start">
+                        <p class="app-obs-txt app-top-separation">(i) O nome e a palavra-chave do bolão estão <br>disponíveis no grupo do Whatsapp.</p>
+                    </div>
+                </div>
+                <div class="row d-flex justify-content-center align-items-center">
+                    <div class="col-12 text-start">
+                        <p id="warning-msg" class=` + warningMsgClass + `style="width: 300px;">` +
+                            warningMsg +
+                 `</p>
+                    </div>
+                </div>                
+            </div>`;
+    return html;
+}
+
+function storageSiginSweepstakeData(sweepsName, sweepsKeyword){
+
+    joinSweepsDataParsed = JSON.parse(joinSweepsData);
+    joinSweepsDataParsed.sweepsName = sweepsName;
+    joinSweepsDataParsed.sweepsKeyword = sweepsKeyword;
+}
+
+async function joinSweepstake(){
+    const sweepsName = document.getElementById("sweeps-name");
+    const sweepsKeyword = document.getElementById("sweeps-keyword");
+    const warningMsg = document.getElementById("warning-msg");
+    let existInvalidDate = false;
+
+    if(sweepsName.innerText === '' && !existInvalidDate){
+        warningMsg.innerText = "O nome do bolão não foi informado.";
+        existInvalidDate = true;
+    }
+
+    if(sweepsKeyword.value === '' && !existInvalidDate){
+        warningMsg.innerText = "A palavra-chave não foi informada.";
+        existInvalidDate = true;
+    }
+
+    if(existInvalidDate){
+        showWarningMsg(warningMsg);
+        existInvalidDate=false;
+        return;
+    }
+
+    //Ocultando warning-msg e modal:
+    warningMsg.classList.add("d-none");
+    hideModal();
+;
+    storageSiginSweepstakeData(sweepsName.innerText, sweepsKeyword.value);
+    
+    await haveJoinSweepsRequest(warningMsg);
+}
+
+async function haveJoinSweepsRequest(){
+    try{
+        showLoadingModal();
+        const response = await haveRequest("/sweeps/join", "POST", JSON.stringify(joinSweepsDataParsed));
+        if(response.isSuccessStatus){
+            showModal(msgTitle, "<p>Pronto! Agora você faz parte do bolão '" + joinSweepsDataParsed.sweepsName + "'!</p>", 
+                false, "", null, false);
+            setTimeout(function() {location.reload();}, 3000);
+        }else{
+            console.log(response.body.message);
+            showModalSiginSweepstake(response.body.message);
+        }
+    }catch(error){
+        /*
+            Só entra aqui se for erro de rede, ou seja, se ocorrer:
+            -Servidor offline
+            -Conexão recusada
+            -DNS não encontrado
+            -Timeout de rede
+            -Problema de CORS que bloqueia a requisição
+            -Usuário sem internet
+        */
+        showModal(msgTitle + " - Erro", "<p><strong>Ocorreu um erro inesperado ao tentar criar o bolão.</strong>"+
+            "<br>Sugerimos que verifique se você está conectado a internet ou aguarde 10 minutos antes de tentar novamente."+
+            "<br>Caso o problema persista, envie uma mensagem no grupo de Whatsapp do bolão informando o problema.<br>"+
+            "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br></p>"+error.message, 
+            true, "OK", null, false); 
+    }
+
 }

@@ -51,6 +51,17 @@ async function getSweepstakes(userLoggedInToken) {
     return sweepstakes;
 }
 
+async function getAllSweepstakesNames() {
+    let sweepstakesNames = undefined;
+    sweepstakesNames = await sweepsModel.getAllSweepstakesNames();
+
+    if(!sweepstakesNames){
+        sweepstakesNames = {};
+    }
+
+    return sweepstakesNames;
+}
+
 async function createSweepstake(userLoggedInToken, sweepsName, sweepsKeyword, sweepsQuota, sweepsStartDateParticipation, 
     sweepsEndDateParticipation, sweepsWhatsappGroupLink) {
     const payload = jwt.verify(userLoggedInToken, SECRET);
@@ -154,7 +165,33 @@ function getInitialSweepsStatus(){
     return SWEEPS_STATUS["status1"];
 }
 
+async function joinSweepstake(userLoggedInToken, sweepsName, sweepsKeyword) {
+    const payload = jwt.verify(userLoggedInToken, SECRET);
+    const userId = payload.userId;
+    const isAdmin = payload.isAdmin;
 
-module.exports = { getSweepstakes, createSweepstake, getInitialSweepsStatus, MIN_SWEEPS_KEYWORD_CHARS, 
-    MAX_SWEEPS_KEYWORD_CHARS, MIN_SWEEPS_QUOTA, MAX_SWEEPS_QUOTA, MIN_PASSWORD_CHARS, 
+    if(sweepsName.length === 0){
+        throw new Error('O nome do bolão não foi informado.');
+    }
+
+    if(sweepsKeyword.length === 0){
+        throw new Error('A palavra-chave não foi informada.');
+    }
+
+    //Verificando se a keyword informada é a keyword correta:
+    sweepsData = await sweepsModel.getSweepstakesDataFromName(sweepsName);
+    const keywordMatch = await bcrypt.compare(sweepsKeyword, sweepsData[0].keyword_hash);
+    if(!keywordMatch){
+        throw new Error('Palavra-chave ou bolão incorreto.');        
+    }
+
+    //Add user:
+    await sweepsUserModel.insertSweepsUser(sweepsName, userId);
+    //Add log:
+    await sweepsLogModel.insertSweepsLog(sweepsName, userId, SWEEPS_LOG_EVENTS.entryParticipantEvent, 
+        SWEEPS_LOG_EVENTS.entryParticipantEvent.details, common.formatDateToDataBase(new Date().toISOString()));
+}
+
+module.exports = { getSweepstakes, getAllSweepstakesNames, createSweepstake, getInitialSweepsStatus, joinSweepstake, 
+    MIN_SWEEPS_KEYWORD_CHARS, MAX_SWEEPS_KEYWORD_CHARS, MIN_SWEEPS_QUOTA, MAX_SWEEPS_QUOTA, MIN_PASSWORD_CHARS, 
     MAX_PASSWORD_CHARS, MAX_SWEEPS_NAME_CHARS };

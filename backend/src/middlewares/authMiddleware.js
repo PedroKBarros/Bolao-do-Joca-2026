@@ -6,16 +6,39 @@ function authMiddleware(req, res, next) {
   const token = req.cookies.auth_token;
   console.log("Cookies recebidos:", req.cookies);
 
+
+   // Cenário 1: usuário não estava autenticado antes, por isso não há token:
   if (!token) {
-    return res.status(401).json({ message: 'Usuario não autenticado' });
+    return res.status(401).json({ code: 'SEM_TOKEN', message: 'Usuario não autenticado' });
   }
 
   try {
+    // Cenário 2: usuário possui token e ele é válido:
     const payload = jwt.verify(token, envFileHandle.jwtSecret);
     req.userId = payload.id;
-    next();
+    return next();
   } catch (err) {
-    return res.status(401).json({ error: "Token inválido ou expirado" });
+    // Cenário 3: usuário possui token, mas ele está expirado:
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        code: 'TOKEN_EXPIRADO',
+        message: 'Sessão expirada'
+      });
+    }
+
+    // Cenário 4: usuário possui token, mas ele é inválido/corrompido:
+    if (err.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        code: 'TOKEN_INVALIDO',
+        message: 'Token inválido'
+      });
+    }
+
+    // Cenário 5: erro inesperado:
+    return res.status(401).json({
+      code: 'ERRO_AUTENTICACAO',
+      message: 'Erro de autenticação'
+    });
   }
 }
 

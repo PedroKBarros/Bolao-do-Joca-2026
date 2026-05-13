@@ -1,4 +1,4 @@
-import { showModal, addHtmlInShowedModal, haveRequest, goToPage, 
+import { showModal, addHtmlInShowedModal, makeRequest, handleRequest, goToPage, 
     loadModalInHtmlPage, showLoadingModal, hideModal } from "./common.js";
 import { PAGE_CONFIGS } from "./config.js";
 
@@ -106,32 +106,9 @@ function showWhatsappNumberConfirmation(){
 }
 
 async function haveRegisterRequest(){
-    try{
-        showLoadingModal();
-        const response = await haveRequest("/register", "POST", JSON.stringify(registerDataParsed));
-        if(response.isSuccessStatus){
-            showModal(msgTitle, "<p>Cadastro realizado com sucesso!<br>Você será redicionado a página de login.</p>", 
-                true, "OK", goToLoginPage, false);
-        }else{
-            showModal(msgTitle, response.body.message, 
-                true, "OK", null, false);            
-        }
-    }catch(error){
-        /*
-            Só entra aqui se for erro de rede, ou seja, se ocorrer:
-            -Servidor offline
-            -Conexão recusada
-            -DNS não encontrado
-            -Timeout de rede
-            -Problema de CORS que bloqueia a requisição
-            -Usuário sem internet
-        */
-        showModal(msgTitle + " - Erro", "<p><strong>Ocorreu um erro inesperado ao tentar realizar o cadastro.</strong>"+
-            "<br>Sugerimos que verifique se você está conectado a internet ou aguarde 10 minutos antes de tentar novamente."+
-            "<br>Caso o problema persista, envie uma mensagem no grupo de Whatsapp do bolão informando o problema.<br>"+
-            "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br></p>"+error.message, 
-            true, "OK", null, false); 
-    }
+    await handleRequest(() => makeRequest("/register", "POST", JSON.stringify(registerDataParsed)), 
+    () => showModal(msgTitle, "<p>Cadastro realizado com sucesso!<br>Você será redicionado a página de login.</p>", 
+                true, "OK", goToLoginPage, false), true, null, true, msgTitle);
 
 }
 

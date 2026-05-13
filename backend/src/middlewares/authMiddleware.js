@@ -9,7 +9,7 @@ function authMiddleware(req, res, next) {
 
    // Cenário 1: usuário não estava autenticado antes, por isso não há token:
   if (!token) {
-    return res.status(401).json({ code: 'SEM_TOKEN', message: 'Usuario não autenticado' });
+    return res.status(401).json({ code: 'NO_TOKEN', message: 'Usuario não autenticado' });
   }
 
   try {
@@ -21,23 +21,26 @@ function authMiddleware(req, res, next) {
     // Cenário 3: usuário possui token, mas ele está expirado:
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({
-        code: 'TOKEN_EXPIRADO',
-        message: 'Sessão expirada'
+        code: 'TOKEN_EXPIRED',
+        message: 'Sessão expirada',
+        errorMsg: err.message
       });
     }
 
     // Cenário 4: usuário possui token, mas ele é inválido/corrompido:
     if (err.name === 'JsonWebTokenError') {
       return res.status(401).json({
-        code: 'TOKEN_INVALIDO',
-        message: 'Token inválido'
+        code: 'INVALID_TOKEN',
+        message: 'Token inválido',
+        errorMsg: err.message
       });
     }
 
     // Cenário 5: erro inesperado:
     return res.status(401).json({
-      code: 'ERRO_AUTENTICACAO',
-      message: 'Erro de autenticação'
+      code: 'AUTH_ERROR',
+      message: 'Erro de autenticação',
+      errorMsg: err.message
     });
   }
 }

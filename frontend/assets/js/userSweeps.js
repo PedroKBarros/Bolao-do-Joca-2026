@@ -1,6 +1,6 @@
-import { goToPage, showLoadingModal, goToHomePage, haveRequest, loadModalInHtmlPage, 
-    showModal, hideModal, loadHtmlComponentInHtmlPage, getHtmlOfComponent, 
-    addEventsToUpdateDropdownSelectedItem, setDefaultDropdownSelectedItem,
+import { goToPage, showLoadingModal, goToHomePage, makeRequest, handleRequest, HANDLE_REQUESTS_STATUS,
+    loadModalInHtmlPage, showModal, hideModal, loadHtmlComponentInHtmlPage, 
+    getHtmlOfComponent, addEventsToUpdateDropdownSelectedItem, setDefaultDropdownSelectedItem, 
     formatUrlToExternUrl} from "./common.js";
 import { PAGE_CONFIGS } from "./config.js";
 
@@ -12,6 +12,7 @@ var trySiginSweeps = false;
 var userData;
 var sweepsData;
 var allSweepsNamesData;
+var failedInSomeInitRequest = false;
 
 const newSweepsData = `
 {
@@ -41,8 +42,17 @@ export async function init(){
 
 async function definePageUI() {
     await haveUserDataRequest();
+    if(failedInSomeInitRequest){
+        return;
+    }
     await haveSweepstakesDataRequest();
+    if(failedInSomeInitRequest){
+        return;
+    }
     await haveAllSweepstakesNameRequest(); //Dados utilizados na modal para entrar em bolão.
+    if(failedInSomeInitRequest){
+        return;
+    }
     defineButtonEvents();
     defineWelcomeMsgUI();
     if(userData.isAdmin === 0){
@@ -138,17 +148,31 @@ function defineWelcomeMsgUI(){
 }
 
 async function haveUserDataRequest(){
-    try{
-        showLoadingModal();
-        const response = await haveRequest("/me", "GET");
-        if(response.isSuccessStatus){
-            userData = response.body;
-            console.log(userData);
-            hideModal();
-        }else{
-            throw new Error("Requisição GET /me retornou status " + response.status + ".");           
-        }
-    }catch(error){
+
+    let handleReturn = await handleRequest(() => makeRequest("/me", "GET"), null, false, ()=>{throw new Error();}, true, msgTitle);
+
+    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+        userData = handleReturn.response.body;
+        hideModal();
+        console.log(userData);
+    }else{
+        failedInSomeInitRequest = true;
+    }
+
+
+//    try{
+//       showLoadingModal();
+//        const response = await makeRequest("/me", "GET");
+//        if(response.isSuccessStatus){
+//            userData = response.body;
+//            console.log(userData);
+//            hideModal();
+//        }else{
+//            throw new Error("Requisição GET /me retornou status " + response.status + ".");           
+//        }
+//    }catch(error){
         /*
             Só entra aqui se for erro de rede, ou seja, se ocorrer:
             -Servidor offline
@@ -158,28 +182,41 @@ async function haveUserDataRequest(){
             -Problema de CORS que bloqueia a requisição
             -Usuário sem internet
         */
-        showModal(msgTitle + " - Erro", "<p><strong>Ocorreu um erro inesperado ao tentar obter os dados do usuário logado.</strong>"+
-            "<br>Sugerimos que verifique se você está conectado a internet ou aguarde 10 minutos antes de tentar novamente."+
-            "<br>Caso o problema persista, envie uma mensagem no grupo de Whatsapp do bolão informando o problema.<br>"+
-            "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br></p>"+error.message, 
-            true, "OK", goToHomePage, false); 
-    }
+//        showModal(msgTitle + " - Erro", "<p><strong>Ocorreu um erro inesperado ao tentar obter os dados do usuário logado.</strong>"+
+//            "<br>Sugerimos que verifique se você está conectado a internet ou aguarde 10 minutos antes de tentar novamente."+
+//            "<br>Caso o problema persista, envie uma mensagem no grupo de Whatsapp do bolão informando o problema.<br>"+
+//            "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br></p>"+error.message, 
+//            true, "OK", goToHomePage, false); 
+//    }
 
 }
 
 
 async function haveSweepstakesDataRequest(){
-    try{
-        showLoadingModal();
-        const response = await haveRequest("/sweeps", "GET");
-        if(response.isSuccessStatus){
-            sweepsData = response.body;
-            console.log(sweepsData);
-            hideModal();
-        }else{
-            throw new Error("Requisição GET /sweeps retornou status " + response.status + ".");           
-        }
-    }catch(error){
+
+    let handleReturn = await handleRequest(() => makeRequest("/sweeps", "GET"), null, false, ()=>{throw new Error();}, true, true, msgTitle);
+
+    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+        sweepsData = handleReturn.response.body;
+        console.log(sweepsData);
+        hideModal();
+    }else{
+        failedInSomeInitRequest = true;
+    }
+
+//    try{
+//        showLoadingModal();
+//        const response = await makeRequest("/sweeps", "GET");
+//        if(response.isSuccessStatus){
+//            sweepsData = response.body;
+//            console.log(sweepsData);
+//            hideModal();
+//        }else{
+//            throw new Error("Requisição GET /sweeps retornou status " + response.status + ".");           
+//        }
+//    }catch(error){
         /*
             Só entra aqui se for erro de rede, ou seja, se ocorrer:
             -Servidor offline
@@ -189,26 +226,39 @@ async function haveSweepstakesDataRequest(){
             -Problema de CORS que bloqueia a requisição
             -Usuário sem internet
         */
-        showModal(msgTitle + " - Erro", "<p><strong>Ocorreu um erro inesperado ao tentar obter os bolões do usuário logado.</strong>"+
-            "<br>Sugerimos que verifique se você está conectado a internet ou aguarde 10 minutos antes de tentar novamente."+
-            "<br>Caso o problema persista, envie uma mensagem no grupo de Whatsapp do bolão informando o problema.<br>"+
-            "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br></p>"+error.message, 
-            true, "OK", goToHomePage, false); 
-    }
+//        showModal(msgTitle + " - Erro", "<p><strong>Ocorreu um erro inesperado ao tentar obter os bolões do usuário logado.</strong>"+
+//            "<br>Sugerimos que verifique se você está conectado a internet ou aguarde 10 minutos antes de tentar novamente."+
+//            "<br>Caso o problema persista, envie uma mensagem no grupo de Whatsapp do bolão informando o problema.<br>"+
+//            "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br></p>"+error.message, 
+//            true, "OK", goToHomePage, false); 
+//    }
 }
 
 async function haveAllSweepstakesNameRequest(){
-    try{
-        showLoadingModal();
-        const response = await haveRequest("/sweeps/names", "GET");
-        if(response.isSuccessStatus){
-            allSweepsNamesData = response.body;
-            console.log(sweepsData);
-            hideModal();
-        }else{
-            throw new Error("Requisição GET /sweeps/names retornou status " + response.status + ".");           
-        }
-    }catch(error){
+
+    let handleReturn = await handleRequest(() => makeRequest("/sweeps/names", "GET"), null, false, ()=>{throw new Error();}, true, msgTitle);
+
+    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+        allSweepsNamesData = handleReturn.response.body;
+        console.log(sweepsData);
+        hideModal();
+    }else{
+        failedInSomeInitRequest = true;
+    }
+
+//    try{
+//        showLoadingModal();
+//        const response = await makeRequest("/sweeps/names", "GET");
+//        if(response.isSuccessStatus){
+//            allSweepsNamesData = response.body;
+//            console.log(sweepsData);
+//            hideModal();
+//        }else{
+//            throw new Error("Requisição GET /sweeps/names retornou status " + response.status + ".");           
+//        }
+//    }catch(error){
         /*
             Só entra aqui se for erro de rede, ou seja, se ocorrer:
             -Servidor offline
@@ -218,27 +268,41 @@ async function haveAllSweepstakesNameRequest(){
             -Problema de CORS que bloqueia a requisição
             -Usuário sem internet
         */
-        showModal(msgTitle + " - Erro", "<p><strong>Ocorreu um erro inesperado ao tentar obter os bolões do usuário logado.</strong>"+
-            "<br>Sugerimos que verifique se você está conectado a internet ou aguarde 10 minutos antes de tentar novamente."+
-            "<br>Caso o problema persista, envie uma mensagem no grupo de Whatsapp do bolão informando o problema.<br>"+
-            "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br></p>"+error.message, 
-            true, "OK", goToHomePage, false); 
-    }
+//        showModal(msgTitle + " - Erro", "<p><strong>Ocorreu um erro inesperado ao tentar obter os bolões do usuário logado.</strong>"+
+//            "<br>Sugerimos que verifique se você está conectado a internet ou aguarde 10 minutos antes de tentar novamente."+
+//            "<br>Caso o problema persista, envie uma mensagem no grupo de Whatsapp do bolão informando o problema.<br>"+
+//            "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br></p>"+error.message, 
+//            true, "OK", goToHomePage, false); 
+//    }
 }
 
 async function haveCreateSweepsRequest(){
-    try{
-        showLoadingModal();
-        const response = await haveRequest("/sweeps", "POST", JSON.stringify(newSweepsDataParsed));
-        if(response.isSuccessStatus){
-            showModal(msgTitle, "<p>Bolão criado com sucesso!<br>A página será atualizada para que ele passe a ser exibido na lista.</p>", 
+
+    let handleReturn = await handleRequest(() => makeRequest("/sweeps", "POST", JSON.stringify(newSweepsDataParsed)),
+    () => {showModal(msgTitle, "<p>Bolão criado com sucesso!<br>A página será atualizada para que ele passe a ser exibido na lista.</p>", 
                 false, "", null, false);
-            setTimeout(function() {location.reload();}, 3000);
-        }else{
-            console.log(response.body.message);
-            showModalCreateSweepstake(response.body.message);
-        }
-    }catch(error){
+                setTimeout(function() {location.reload();}, 4000);
+            }, false, null, true, msgTitle);
+
+    if(handleReturn.status === HANDLE_REQUESTS_STATUS.authError || 
+        handleReturn.status === HANDLE_REQUESTS_STATUS.unknownError || 
+        handleReturn.status === HANDLE_REQUESTS_STATUS.failed){
+        console.log(handleReturn.response.body.message);
+        showModalCreateSweepstake(handleReturn.response.body.message);
+    }
+
+//    try{
+//        showLoadingModal();
+//        const response = await makeRequest("/sweeps", "POST", JSON.stringify(newSweepsDataParsed));
+//        if(response.isSuccessStatus){
+//            showModal(msgTitle, "<p>Bolão criado com sucesso!<br>A página será atualizada para que ele passe a ser exibido na lista.</p>", 
+//                false, "", null, false);
+//            setTimeout(function() {location.reload();}, 4000);
+//        }else{
+//            console.log(response.body.message);
+//            showModalCreateSweepstake(response.body.message);
+//        }
+//    }catch(error){
         /*
             Só entra aqui se for erro de rede, ou seja, se ocorrer:
             -Servidor offline
@@ -248,18 +312,18 @@ async function haveCreateSweepsRequest(){
             -Problema de CORS que bloqueia a requisição
             -Usuário sem internet
         */
-        showModal(msgTitle + " - Erro", "<p><strong>Ocorreu um erro inesperado ao tentar criar o bolão.</strong>"+
-            "<br>Sugerimos que verifique se você está conectado a internet ou aguarde 10 minutos antes de tentar novamente."+
-            "<br>Caso o problema persista, envie uma mensagem no grupo de Whatsapp do bolão informando o problema.<br>"+
-            "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br></p>"+error.message, 
-            true, "OK", null, false); 
-    }
+//        showModal(msgTitle + " - Erro", "<p><strong>Ocorreu um erro inesperado ao tentar criar o bolão.</strong>"+
+//            "<br>Sugerimos que verifique se você está conectado a internet ou aguarde 10 minutos antes de tentar novamente."+
+//            "<br>Caso o problema persista, envie uma mensagem no grupo de Whatsapp do bolão informando o problema.<br>"+
+//            "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br></p>"+error.message, 
+//            true, "OK", null, false); 
+//    }
 
 }
 
 
 function showModalCreateSweepstake(warningMsg=''){
-    tryCreateSweeps = true;
+    //tryCreateSweeps = false;
     showModal("Criar Bolão", generateModalCreateSweepsHtml(warningMsg), true, "CRIAR", 
     createSweepstake, true, "CANCELAR", null, true);
 
@@ -287,6 +351,7 @@ async function createSweepstake(){
     const warningMsg = document.getElementById("warning-msg");
     let existInvalidDate = false;
 
+    tryCreateSweeps=true;
     if(sweepsName.value === '' && !existInvalidDate){
         warningMsg.innerText = "O nome do bolão não foi preenchido.";
         existInvalidDate = true;
@@ -446,7 +511,6 @@ function generateModalCreateSweepsHtml(warningMsg=''){
 }
 
 async function showModalSiginSweepstake(warningMsg=''){
-    trySiginSweeps = true;
     showModal("Entrar em Bolão", generateModalSiginSweepsHtml(warningMsg), true, "ENTRAR", 
     joinSweepstake, true, "CANCELAR", null, true);
 
@@ -542,6 +606,7 @@ async function joinSweepstake(){
     const warningMsg = document.getElementById("warning-msg");
     let existInvalidDate = false;
 
+    trySiginSweeps = true;
     if(sweepsName.innerText === '' && !existInvalidDate){
         warningMsg.innerText = "O nome do bolão não foi informado.";
         existInvalidDate = true;
@@ -568,18 +633,34 @@ async function joinSweepstake(){
 }
 
 async function haveJoinSweepsRequest(){
-    try{
-        showLoadingModal();
-        const response = await haveRequest("/sweeps/join", "POST", JSON.stringify(joinSweepsDataParsed));
-        if(response.isSuccessStatus){
-            showModal(msgTitle, "<p>Pronto! Agora você faz parte do bolão '" + joinSweepsDataParsed.sweepsName + "'!</p>", 
+
+    let handleReturn = await handleRequest(() => makeRequest("/sweeps/join", "POST", JSON.stringify(joinSweepsDataParsed)),
+    () => {showModal(msgTitle, "<p>Pronto! Agora você faz parte do bolão '" + joinSweepsDataParsed.sweepsName + "'!</p>", 
                 false, "", null, false);
-            setTimeout(function() {location.reload();}, 3000);
-        }else{
-            console.log(response.body.message);
-            showModalSiginSweepstake(response.body.message);
-        }
-    }catch(error){
+                setTimeout(function() {location.reload();}, 4000);
+            }, false, null, true, msgTitle);
+
+    console.log(handleReturn.status);
+    if(handleReturn.status === HANDLE_REQUESTS_STATUS.authError || 
+        handleReturn.status === HANDLE_REQUESTS_STATUS.unknownError || 
+        handleReturn.status === HANDLE_REQUESTS_STATUS.failed){
+        console.log("TESLA");
+        console.log(handleReturn.response.body.message);
+        showModalSiginSweepstake(handleReturn.response.body.message);
+    }
+
+//    try{
+//        showLoadingModal();
+//        const response = await makeRequest("/sweeps/join", "POST", JSON.stringify(joinSweepsDataParsed));
+//        if(response.isSuccessStatus){
+//            showModal(msgTitle, "<p>Pronto! Agora você faz parte do bolão '" + joinSweepsDataParsed.sweepsName + "'!</p>", 
+//                false, "", null, false);
+//            setTimeout(function() {location.reload();}, 4000);
+//        }else{
+//            console.log(response.body.message);
+//            showModalSiginSweepstake(response.body.message);
+//        }
+//    }catch(error){
         /*
             Só entra aqui se for erro de rede, ou seja, se ocorrer:
             -Servidor offline
@@ -589,11 +670,11 @@ async function haveJoinSweepsRequest(){
             -Problema de CORS que bloqueia a requisição
             -Usuário sem internet
         */
-        showModal(msgTitle + " - Erro", "<p><strong>Ocorreu um erro inesperado ao tentar criar o bolão.</strong>"+
-            "<br>Sugerimos que verifique se você está conectado a internet ou aguarde 10 minutos antes de tentar novamente."+
-            "<br>Caso o problema persista, envie uma mensagem no grupo de Whatsapp do bolão informando o problema.<br>"+
-            "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br></p>"+error.message, 
-            true, "OK", null, false); 
-    }
+//        showModal(msgTitle + " - Erro", "<p><strong>Ocorreu um erro inesperado ao tentar criar o bolão.</strong>"+
+//            "<br>Sugerimos que verifique se você está conectado a internet ou aguarde 10 minutos antes de tentar novamente."+
+//            "<br>Caso o problema persista, envie uma mensagem no grupo de Whatsapp do bolão informando o problema.<br>"+
+//            "Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br></p>"+error.message, 
+//            true, "OK", null, false); 
+//    }
 
 }

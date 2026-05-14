@@ -56,9 +56,7 @@ async function definePageUI() {
     defineButtonEvents();
     defineWelcomeMsgUI();
     if(userData.isAdmin === 0){
-        document.getElementById("create-sweepstacke").hidden = true;
-    }else{
-        document.getElementById("join-sweepstacke").hidden = true;        
+        document.getElementById("create-sweepstacke").hidden = true;        
     }
 
     defineSweepsListUI();
@@ -117,17 +115,47 @@ async function constructSweepsListUI(){
     let startPartDate;
     let finalPartDate;
     let wppLink;
+    let element;
     for(let i=0;i<sweepsData.length;i++){
-        listArea.innerHTML += listItemHtml;
+        //listArea.innerHTML += listItemHtml;
+        listArea.insertAdjacentHTML("beforeend", listItemHtml);
+        //Obs.: innerHTML faz com que o navegador recrie TODOS os 
+        // filhos da listArea, fazendo eles perderem os eventos associados.
         document.getElementsByName("listItemTitle")[i].innerText = sweepsData[i].name + " (" + sweepsData[i].total_users + ")";
         
         document.getElementsByName("listItemContentPr1")[i].innerText = "Criado por: " + sweepsData[i].author_name + " | Jocota$: " + sweepsData[i].quota;
         
-        //Add id nos botões dos cards dos boloes:
-        document.getElementsByName("listItemFooterContent1")[i].children[0].id = "btnFill_" + sweepsData[i].name;
-        document.getElementsByName("listItemFooterContent2")[i].children[0].id = "btnDownload_" + sweepsData[i].name;
-        document.getElementsByName("listItemFooterContent3")[i].children[0].id = "btnWppLink_" + sweepsData[i].name;
-        
+        //Add botões nos cards dos bolões, ids e evento de click nos respectivos botões:
+        ///Fill button:
+        element = document.getElementsByName("listItemFooterContent1")[i];
+        element.appendChild(document.createElement("img"));
+        element.children[0].setAttribute("src", "/frontend/assets/img/btn_sweepstack_answer.png");
+        element.children[0].setAttribute("class", "app-list-item-icon-btn");
+        ///Fill button id:
+        element.id = "btnFill_" + sweepsData[i].name;
+        ///Fill button click event:
+        element.addEventListener("click", handleClickInFillSweepsButton);
+
+        ///Download Answers button
+        element = document.getElementsByName("listItemFooterContent2")[i];
+        element.appendChild(document.createElement("img"));
+        element.children[0].setAttribute("src", "/frontend/assets/img/btn_sweepstack_download_answers.png");
+        element.children[0].setAttribute("class", "app-list-item-icon-btn");
+        ///Download Answers button id:
+        element.children[0].id = "btnDownload_" + sweepsData[i].name;        
+
+        ///Whatsapp link button:
+        element = document.getElementsByName("listItemFooterContent3")[i];
+        element.appendChild(document.createElement("a"));
+        element.children[0].setAttribute("href", "#");
+        element.children[0].setAttribute("target", "_blank");  
+        element.children[0].setAttribute("rel", "noopener noreferrer");
+        element.children[0].appendChild(document.createElement("img"));
+        element.children[0].children[0].setAttribute("src", "/frontend/assets/img/btn_get_wpp_sweepstacke_link.png");
+        element.children[0].children[0].setAttribute("class", "app-list-item-icon-btn");
+        ///Whatsapp link id:   
+        element.children[0].children[0].id = "btnWppLink_" + sweepsData[i].name;      
+
         //Add link whatsapp:
         wppLink = formatUrlToExternUrl(sweepsData[i].group_link, true, false);
         document.getElementsByName("listItemFooterContent3")[i].children[0].setAttribute("href", wppLink);
@@ -141,6 +169,37 @@ async function constructSweepsListUI(){
     }
 
 }
+
+async function handleClickInFillSweepsButton(event){
+    const sweepsName = String(event.currentTarget.id).split("_")[1];
+
+    //Verificando se o usuário pertence ao bolão:
+    let isUserInSweeps = await checkIfUserIsInSweeps(sweepsName);
+    console.log(isUserInSweeps);
+    if(isUserInSweeps === 0){
+        showModal(msgTitle, "Você não pertence ao bolão. Para preenchê-lo, primeiro entre nele.", true, 
+            "OK", null, false);
+    }else{
+       goToPage(PAGE_CONFIGS.PG_FILL_GROUP_STAGE);
+    }
+
+}
+
+async function checkIfUserIsInSweeps(sweepsName){
+
+    let handleReturn = await handleRequest(() => makeRequest("/sweeps/users/verify", "POST", '{"sweepsName": \"' + sweepsName + '\"}', true), null, false, ()=>{throw new Error();}, true, msgTitle);
+
+    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+        return handleReturn.response.body.message;
+    }
+
+    //Na prática esse retorno nunca será executado, pois caso haja
+    //  erro na requisição, o usuário será direcionado a página home:
+    return null;
+}
+
 
 function defineWelcomeMsgUI(){
     let welcomeMsg = document.getElementById("welcome-msg");

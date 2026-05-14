@@ -7,5 +7,9 @@ router.get('/sweeps', authMiddleware.authMiddleware, sweepsController.getSweepst
 router.get('/sweeps/names', authMiddleware.authMiddleware, sweepsController.getAllSweepstakesNames);
 router.post('/sweeps', authMiddleware.authMiddleware, sweepsController.createSweepstake);
 router.post('/sweeps/join', authMiddleware.authMiddleware, sweepsController.joinSweepstake);
+/*Estou utilizando POST ao invés de GET, pois esse end-point 
+precisa que a requisição envie os dados por body da requisição:*/
+router.post('/sweeps/users/verify', authMiddleware.authMiddleware, sweepsController.checkIfUserIsInSweepstake);
+
 
 module.exports = router;

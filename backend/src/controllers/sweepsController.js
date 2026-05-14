@@ -57,5 +57,17 @@ async function joinSweepstake(req, res) {
   }
 }
 
+async function checkIfUserIsInSweepstake(req, res) {
+  try {
+    const token = req.cookies.auth_token;
+    const { sweepsName } = req.body;
 
-module.exports = { getSweepstakes, getAllSweepstakesNames, createSweepstake, joinSweepstake };
+    res.status(200).json({ message: await sweepsServ.isUserInSweepstake(token, sweepsName) });
+  } catch (err) {
+    console.log("Retorno");
+    res.status(400).json({ message: err.message });
+  }
+}
+
+
+module.exports = { getSweepstakes, getAllSweepstakesNames, createSweepstake, joinSweepstake, checkIfUserIsInSweepstake };

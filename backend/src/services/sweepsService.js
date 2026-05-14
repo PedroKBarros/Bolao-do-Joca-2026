@@ -197,6 +197,13 @@ async function joinSweepstake(userLoggedInToken, sweepsName, sweepsKeyword) {
         SWEEPS_LOG_EVENTS.entryParticipantEvent.details, common.formatDateToDataBase(new Date().toISOString()));
 }
 
-module.exports = { getSweepstakes, getAllSweepstakesNames, createSweepstake, getInitialSweepsStatus, joinSweepstake, 
-    MIN_SWEEPS_KEYWORD_CHARS, MAX_SWEEPS_KEYWORD_CHARS, MIN_SWEEPS_QUOTA, MAX_SWEEPS_QUOTA, MIN_PASSWORD_CHARS, 
-    MAX_PASSWORD_CHARS, MAX_SWEEPS_NAME_CHARS };
+async function isUserInSweepstake(userLoggedInToken, sweepsName) {
+    const payload = jwt.verify(userLoggedInToken, SECRET);
+    const userId = payload.userId;
+
+    return await sweepsUserModel.isUserInSweepstake(sweepsName, userId);
+}
+
+module.exports = { getSweepstakes, getAllSweepstakesNames, createSweepstake, getInitialSweepsStatus, 
+    joinSweepstake, isUserInSweepstake, MIN_SWEEPS_KEYWORD_CHARS, MAX_SWEEPS_KEYWORD_CHARS, 
+    MIN_SWEEPS_QUOTA, MAX_SWEEPS_QUOTA, MIN_PASSWORD_CHARS, MAX_PASSWORD_CHARS, MAX_SWEEPS_NAME_CHARS };

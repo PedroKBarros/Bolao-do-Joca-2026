@@ -284,12 +284,12 @@ exports[`Database tests TC1 - Verify database struct 1`] = `
   },
   {
     "can_null": "NO",
-    "col_name": "user_id",
+    "col_name": "sweepstake_users_id",
     "col_type": "int",
     "is_foreign_key": 1,
     "is_primary_key": 0,
     "referenced_column": "id",
-    "referenced_table": "users",
+    "referenced_table": "sweepstake_users",
     "tb_name": "ranking_group_stage_predictions",
   },
   {

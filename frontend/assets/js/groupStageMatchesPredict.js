@@ -134,9 +134,9 @@ async function defineMatchesHtmlUi() {
         currentInputTime1 = document.getElementsByName("inputTeam1")[i];
         currentInputTime2 = document.getElementsByName("inputTeam2")[i];
         currentInputTime1.id = "inputTeam1_" + matchesData[i].id;
-        currentInputTime1.addEventListener("change", handleChangeInInputFieldValue);
+        currentInputTime1.addEventListener("input", handleChangeInInputFieldValue);
         currentInputTime2.id = "inputTeam2_" + matchesData[i].id;
-        currentInputTime2.addEventListener("change", handleChangeInInputFieldValue);
+        currentInputTime2.addEventListener("input", handleChangeInInputFieldValue);
     }
 }
 
@@ -225,21 +225,11 @@ function handleChangeInInputFieldValue(event){
     const inputTeam2 = isTeam1Input ? document.getElementById(String(inputTriggedEventId).replace("Team1", "Team2")) : 
     document.getElementById(inputTriggedEventId);
 
-    //Check changed input:
+    //Removing all caracteres that is not a 0-9:
     if(isTeam1Input){
-        if(Number(inputTeam1.value) < 0){
-            inputTeam1.classList.add("app-alert-field");
-            return;
-        }else{
-            inputTeam1.classList.remove("app-alert-field");
-        }
+        normalizeScoreTeamInput(inputTeam1);
     }else{
-        if(Number(inputTeam2.value) < 0){
-            inputTeam2.classList.add("app-alert-field");
-            return;
-        }else{
-            inputTeam2.classList.remove("app-alert-field");
-        }
+        normalizeScoreTeamInput(inputTeam2);
     }
 
     //Check if all inputs are filled:
@@ -283,6 +273,11 @@ function handleChangeInInputFieldValue(event){
     console.log([...predictDataPendingToSave]);
 }
 
+function normalizeScoreTeamInput(htmlInputElement){
+    //Remove all caracteres that is not a 0-9:
+    htmlInputElement.value = htmlInputElement.value.replace(/\D/g, '');
+}
+
 function defineEventsInHeaderButtons(){
     document.getElementById("save-data").addEventListener("click", saveData);
     document.getElementById("show-instructions").addEventListener("click", showInstructionMsg);
@@ -320,6 +315,7 @@ async function saveData() {
         //Limpando array de dados que estavam pendentes de serem salvos:
         clearPredictDataPendingToSave();
         //Atualizando as tabelas:
+        clearTeamDraw();
         updateGroupTablesData();
         updateHtmlTables();
     }
@@ -327,6 +323,10 @@ async function saveData() {
 
 function clearPredictDataPendingToSave(){
     predictDataPendingToSave.length = 0;
+}
+
+function clearTeamDraw(){
+    teamsDraws.length = 0;
 }
 
 function updateSaveStatus(onlyInformThatDontHavePendingDataToSave=false){
@@ -382,37 +382,33 @@ function checkInvalidFilledMatches(){
 function showReviewMatchesMsg(checkPartialFilledMatchesResult, checkInvalidFilledMatchesResult){
 
     let htmlContentMsg = "<p><strong>Antes de salvar, identificamos partidas que precisam ser revisadas:</strong></p>";
-
+    console.log(checkPartialFilledMatchesResult.matches);
     if(checkPartialFilledMatchesResult.total > 0){
         if(checkPartialFilledMatchesResult.total === 1){
-            htmlContentMsg += "<p><strong>Partida Parcialmente Preenchida:</strong></p>";
-            htmlContentMsg += `<p>Verificamos que a seguinte partida está com o placar 
-            parcialmente preenchido:` + checkPartialFilledMatchesResult.matches +
-            `<br>É necessário preencher o placar para ambas as seleções dessa partida antes de 
-            salvar.</p><p class="app-red-txt">Destacamos o campo em vermelho!</p>`;
+            htmlContentMsg += "<p><strong>Partida Parcialmente Preenchida:</strong>";
+            htmlContentMsg += checkPartialFilledMatchesResult.matches +
+            `<br><br>É necessário preencher o placar para ambas as seleções dessa partida antes de 
+            salvar.</p><p class="app-red-txt">Destacamos a borda do campo em vermelho!</p>`;
         }else{
-            htmlContentMsg += "<p><strong>Partidas Parcialmente Preenchidas:</strong></p>";
-            htmlContentMsg +=  `<p>Verificamos que as seguintes ` + checkPartialFilledMatchesResult.total + 
-            ` partidas estão com o placar parcialmente preenchido:` + checkPartialFilledMatchesResult.matches +
-            `<br>É necessário preencher o placar para ambas as seleções dessas partidas antes de 
-            salvar.</p><p class="app-red-txt">Destacamos os campos em vermelho!</p>`;
+            htmlContentMsg += "<p><strong>Partidas Parcialmente Preenchidas (" + checkPartialFilledMatchesResult.total + "):</strong>";
+            htmlContentMsg += checkPartialFilledMatchesResult.matches +
+            `<br><br>É necessário preencher o placar para ambas as seleções dessas partidas antes de 
+            salvar.</p><p class="app-red-txt">Destacamos a borda desses campos em vermelho!</p>`;
         }
     }
 
     if(checkInvalidFilledMatchesResult.total > 0){
 
         if(checkInvalidFilledMatchesResult.total === 1){
-            htmlContentMsg += "<p><strong>Partida com Placar Inválido:</strong></p>";
-            htmlContentMsg += `<p>Verificamos que a seguinte partida está com o placar 
-            inválido:` + checkInvalidFilledMatchesResult.matches +
-            `<br>É necessário corrigir o placar dessa partida antes de 
-            salvar.</p><p class="app-red-txt">Destacamos o campo em vermelho!</p>`;
+            htmlContentMsg += "<p><strong>Partida com Placar Inválido:</strong>";
+            htmlContentMsg += checkInvalidFilledMatchesResult.matches +
+            `<br><br>É necessário corrigir o placar dessa partida antes de 
+            salvar.</p><p class="app-red-txt">Destacamos a borda desse campo em vermelho!</p>`;
         }else{
-            htmlContentMsg += "<p><strong>Partidas com Placar Inválido:</strong></p>";
-            htmlContentMsg +=  `<p>Verificamos que as seguintes ` + checkInvalidFilledMatchesResult.total + 
-            ` partidas estão com o placar inválido:` + checkInvalidFilledMatchesResult.matches +
-            `<br>É necessário corrigir o placar dessas partidas antes de 
-            salvar.</p><p class="app-red-txt">Destacamos os campos em vermelho!</p>`;
+            htmlContentMsg += "<p><strong>Partidas com Placar Inválido (" + checkInvalidFilledMatchesResult.total + "):</strong>";
+            htmlContentMsg +=  checkInvalidFilledMatchesResult.matches +
+            `<br><br>É necessário corrigir o placar dessas partidas antes de 
+            salvar.</p><p class="app-red-txt">Destacamos a borda desses campos em vermelho!</p>`;
         }
     }
 
@@ -525,16 +521,22 @@ function updateGroupTablesData(){
     }
 
     //Verificando se ocorreu empate que precisa
-    // de tratamento manual e avisando ao usuário:
+    // de tratamento manual, avisando ao usuário e 
+    // exibindo indicativo ao lado do nome dos grupos:
     if(teamsDraws.some(t => t.status === DRAW_SOLUTION_STATUS.automaticSolutionFailed)){
-        showModal(msgTitle + " - Empates", `
-            <p><strong>Um ou mais grupos apresentam seleções empatadas e é necessário sua decisão para desempatá-las.</strong>
-            <br><br><strong>Como identificar esses grupos?</strong><br>Esses grupos apresentam a frase 
-            'Desempate necessário' ao lado do nome. Para desempatar as seleções deles, desça até o final deles e 
-            clique no botão de desempate exibido abaixo da tabela.</p>`, true, "OK", null, false);
+        showManualDrawPendingAlertMsg();
+        updateUIOfGroupsWithManualDrawPending();
     }
 
 
+}
+
+function showManualDrawPendingAlertMsg(){
+    showModal(msgTitle + " - Empates", `
+        <p><strong>Um ou mais grupos apresentam seleções empatadas e é necessário sua decisão para desempatá-las.</strong>
+        <br><br><strong>Como identificar esses grupos?</strong><br>Esses grupos apresentam a frase 
+        'Desempate necessário' ao lado do nome. Para desempatar as seleções deles, desça até o final deles e 
+        clique no botão de desempate exibido abaixo da tabela.</p>`, true, "OK", null, false);
 }
 
 function handleTeamGroupsPlaces(groupTableDataIndex){

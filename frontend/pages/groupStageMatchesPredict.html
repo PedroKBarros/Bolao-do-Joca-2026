@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BDJ 2026 - Preenchimento</title>
+    <link href="/frontend/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/frontend/assets/css/app-theme.css" rel="stylesheet">
+  </head>
+  <body data-page="groupStageMatchesPredict">
+    <div class="container app-container">
+        <header>
+            <div class="app-blue-bg d-flex align-items-center">
+                <img src="/frontend/assets/img/logo_sem_fundo.png" class="img-fluid app-logo-header-after-login" alt="Logo">
+                <p class="app-big-txt app-white-txt app-zero-separation ms-2">BOLÃO DO JOCA 2026</p>
+            </div>
+
+            <div class="row d-flex justify-content-center align-items-center">
+                <div class="col-12 text-center">
+                    <button id="save-data" type="button" class="app-btn app-medium-btn app-neutral-btn-color app-small-top-separation app-right-separation">
+                        SALVAR
+                    </button>
+                    <button id="show-instructions" type="button" class="app-btn app-medium-btn app-neutral-btn-color app-small-top-separation app-left-separation">
+                        INSTRUÇÕES
+                    </button>
+                </div>
+            </div>
+            <div class="app-white-bg row d-flex justify-content-center align-items-center">
+                <div class="col-12 text-center">
+                    <p id="filledMatchesStatus" class="app-big-txt app-blue-txt app-zero-separation">FASE DE GRUPOS</p>
+                </div>
+            </div>
+            <div class="app-white-bg row d-flex justify-content-center align-items-center">
+                <div class="col-12 text-center">
+                    <p id="filledMatchesStatus" class="app-normal-txt app-black-txt app-zero-separation">0 de 72 jogos preenchidos</p>
+                </div>
+            </div>
+            <div class="app-white-bg row d-flex justify-content-center align-items-center" style="border-bottom: 2px dotted #000000;">
+                <div class="col-12 text-center">
+                    <p id="secundaryStatus" class="app-normal-txt app-blue-txt app-zero-separation"></p>
+                </div>
+            </div>
+        </header>
+        <main>
+            <div id="groupMatchesArea" class="app-top-separation mx-auto row d-flex align-items-middle">
+                <!--Put here groupMatches.html elements-->
+            </div>
+
+            <!--O html da div abaixo é adicionado dinamicamente via fetch 
+            do /frontend/assets/components/modal.html-->
+            <div id="modalComponent"></div>
+        </main>
+    </div>
+    <script src="/frontend/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="/frontend/assets/js/main.js"></script>
+  </body>
+</html>

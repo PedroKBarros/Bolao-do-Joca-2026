@@ -204,6 +204,27 @@ async function isUserInSweepstake(userLoggedInToken, sweepsName) {
     return await sweepsUserModel.isUserInSweepstake(sweepsName, userId);
 }
 
+async function getSweepstakeUsers(sweepsName) {
+    let sweepsUsers;
+
+    sweepsUsers = await sweepsUserModel.getSweepstakeUsers(sweepsName);
+    if(!sweepsUsers){
+        sweepsUsers = {};
+    }
+    return sweepsUsers;
+}
+
+async function getSweepstakeUserId(sweepsName, userId) {
+    let sweepstakeUserId;
+
+    sweepstakeUserId = await sweepsUserModel.getSweepstakeUserId(sweepsName, userId);
+    if(!sweepstakeUserId){
+        sweepstakeUserId = {};
+    }
+    return {"sweepstake_user_id": sweepstakeUserId[0].sweeps_user_id};
+}
+
 module.exports = { getSweepstakes, getAllSweepstakesNames, createSweepstake, getInitialSweepsStatus, 
-    joinSweepstake, isUserInSweepstake, MIN_SWEEPS_KEYWORD_CHARS, MAX_SWEEPS_KEYWORD_CHARS, 
-    MIN_SWEEPS_QUOTA, MAX_SWEEPS_QUOTA, MIN_PASSWORD_CHARS, MAX_PASSWORD_CHARS, MAX_SWEEPS_NAME_CHARS };
+    joinSweepstake, isUserInSweepstake, getSweepstakeUsers, getSweepstakeUserId, MIN_SWEEPS_KEYWORD_CHARS, 
+    MAX_SWEEPS_KEYWORD_CHARS, MIN_SWEEPS_QUOTA, MAX_SWEEPS_QUOTA, MIN_PASSWORD_CHARS, MAX_PASSWORD_CHARS, 
+    MAX_SWEEPS_NAME_CHARS };

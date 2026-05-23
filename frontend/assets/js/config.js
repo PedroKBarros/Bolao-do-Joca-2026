@@ -10,7 +10,8 @@ export const PAGE_CONFIGS = {
     PG_HOME_NAME: "index",
     PG_REGISTER_NAME: "register",
     PG_LOGIN_NAME: "login",
-    PG_SWEEPS_NAME: "userSweeps"
+    PG_SWEEPS_NAME: "userSweeps",
+    PG_GROUP_STAGE_MATCHES_PREDICT: "groupStageMatchesPredict"
 }
 
 export function getFrontendBaseUrl(){

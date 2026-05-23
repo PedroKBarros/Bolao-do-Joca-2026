@@ -13,6 +13,7 @@ var userData;
 var sweepsData;
 var allSweepsNamesData;
 var failedInSomeInitRequest = false;
+var failedInSomeRequestToOpenSweepsFillPage = false;
 
 const newSweepsData = `
 {
@@ -180,7 +181,15 @@ async function handleClickInFillSweepsButton(event){
         showModal(msgTitle, "Você não pertence ao bolão. Para preenchê-lo, primeiro entre nele.", true, 
             "OK", null, false);
     }else{
-       goToPage(PAGE_CONFIGS.PG_FILL_GROUP_STAGE);
+       //Adicionando o nome do bolão no local storage:
+       storeSelectSweepsNameToFillInLocalStorage(sweepsName);
+       //Adicionando o id do usuário na tabela sweepstake_users no local storage:
+       await storeSelectedSweepstakeUserIdInLocalStorage(sweepsName);
+       if(failedInSomeRequestToOpenSweepsFillPage){
+        return;
+       }
+
+       goToPage(PAGE_CONFIGS.PG_GROUP_STAGE_MATCHES_PREDICT);
     }
 
 }
@@ -214,6 +223,9 @@ async function haveUserDataRequest(){
         handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
         handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
         userData = handleReturn.response.body;
+        //Armazenando também os dados no local storage para que 
+        // as outras páginas pós-login tenham acesso a esses dados:
+        storeUserLoggedDataInLocalStorage(userData);
         hideModal();
         console.log(userData);
     }else{
@@ -736,4 +748,30 @@ async function haveJoinSweepsRequest(){
 //            true, "OK", null, false); 
 //    }
 
+}
+
+function storeUserLoggedDataInLocalStorage(jsonUserData){
+    localStorage.setItem("userId", jsonUserData.id);
+    localStorage.setItem("userWhatsappNumber", jsonUserData.whatsappNumber);
+    localStorage.setItem("userName", jsonUserData.name);
+    localStorage.setItem("userIsAdmin", jsonUserData.isAdmin);
+}
+
+function storeSelectSweepsNameToFillInLocalStorage(sweepsName){
+    localStorage.setItem("fillingSweepstake", sweepsName);
+}
+
+async function storeSelectedSweepstakeUserIdInLocalStorage(sweepsName){
+
+    let handleReturn = await handleRequest(() => makeRequest("/sweeps/userId?sweepsName=" + sweepsName + "&userId=" + userData.id, "GET"), 
+    null, false, ()=>{throw new Error();}, true, msgTitle);
+
+    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+        localStorage.setItem("userIdInSweepestake", handleReturn.response.body.sweepstake_user_id);
+        hideModal();
+    }else{
+        failedInSomeRequestToOpenSweepsFillPage = true;
+    }
 }

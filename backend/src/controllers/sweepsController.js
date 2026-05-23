@@ -69,5 +69,26 @@ async function checkIfUserIsInSweepstake(req, res) {
   }
 }
 
+async function getSweepstakeUsers(req, res){
+  try {
+    const { sweepsName } = req.query;
 
-module.exports = { getSweepstakes, getAllSweepstakesNames, createSweepstake, joinSweepstake, checkIfUserIsInSweepstake };
+    res.status(200).json(await sweepsServ.getSweepstakeUsers(sweepsName));
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+async function getSweepstakeUserId(req, res){
+  try {
+    const { sweepsName, userId } = req.query;
+
+    res.status(200).json(await sweepsServ.getSweepstakeUserId(sweepsName, userId));
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }  
+}
+
+
+module.exports = { getSweepstakes, getAllSweepstakesNames, createSweepstake, 
+  joinSweepstake, checkIfUserIsInSweepstake, getSweepstakeUsers, getSweepstakeUserId };

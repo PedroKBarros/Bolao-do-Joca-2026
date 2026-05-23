@@ -8,6 +8,9 @@ const authRoutes = require('./routes/authRoutes');
 const registerRoutes = require('./routes/registerRoutes');
 const meRoutes = require('./routes/meRoutes');
 const sweepsRoutes = require('./routes/sweepsRoutes');
+const matchesRoutes = require('./routes/matchesRoutes');
+const predictionsRoutes = require('./routes/predictionsRoutes');
+
 //Declarando o uso do cookie-parser para enviar de 
 // forma segura o token de acesso após login:
 const cookieParser = require("cookie-parser");
@@ -29,5 +32,7 @@ app.use('/api', authRoutes);
 app.use('/api', registerRoutes);
 app.use('/api', meRoutes);
 app.use('/api', sweepsRoutes);
+app.use('/api', matchesRoutes);
+app.use('/api', predictionsRoutes);
 
 module.exports = app;

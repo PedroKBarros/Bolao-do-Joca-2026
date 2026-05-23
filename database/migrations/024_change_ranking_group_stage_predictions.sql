@@ -1,0 +1,13 @@
+-- 1. Remove FK
+ALTER TABLE RANKING_GROUP_STAGE_PREDICTIONS
+DROP FOREIGN KEY ranking_group_stage_predictions_ibfk_1;
+
+-- 2. Rename column
+ALTER TABLE RANKING_GROUP_STAGE_PREDICTIONS
+CHANGE user_id sweepstake_users_id INT NOT NULL;
+
+-- 3. Create right FK
+ALTER TABLE RANKING_GROUP_STAGE_PREDICTIONS
+ADD CONSTRAINT fk_rgspid_suid
+FOREIGN KEY (sweepstake_users_id)
+REFERENCES SWEEPSTAKE_USERS(id);

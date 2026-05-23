@@ -176,6 +176,7 @@ export async function makeRequest(endPoint, method = 'GET', reqJson=null, isJson
         }
 
     }
+
     const response = await fetch(getBackendBaseUrl() + endPoint, requestOptions);
     const responseBody = await response.json(); // ou .json()
 

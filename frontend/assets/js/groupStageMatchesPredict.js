@@ -28,6 +28,8 @@ const TEAM_RESULT_IN_MATCH_PREDICTION = {winner: 3, draw: 1, losing: 0};
 const DRAW_SOLUTION_STATUS = {inProgress: "IN PROGRESS", automaticSolutionFailed: "AUTO SOLUTION FAILED",
      automaticSolutionWorked: "AUTO SOLUTION WORKED", manualSolutionApplied: "MANUAL SOLUTION APPLIED"};
 
+const GROUP_MATCHES_DRAW_ALERT_TXT = "Desempate Necessário";
+
 export async function init(){
     getUserDataFromLocalStorage();
     getSweepsNameFromLocalStorage();
@@ -527,16 +529,29 @@ function updateGroupTablesData(){
         showManualDrawPendingAlertMsg();
         updateUIOfGroupsWithManualDrawPending();
     }
-
-
 }
 
 function showManualDrawPendingAlertMsg(){
     showModal(msgTitle + " - Empates", `
         <p><strong>Um ou mais grupos apresentam seleções empatadas e é necessário sua decisão para desempatá-las.</strong>
-        <br><br><strong>Como identificar esses grupos?</strong><br>Esses grupos apresentam a frase 
-        'Desempate necessário' ao lado do nome. Para desempatar as seleções deles, desça até o final deles e 
+        <br><br><strong>Como identificar esses grupos?</strong><br>Esses grupos apresentam a frase '` + 
+        GROUP_MATCHES_DRAW_ALERT_TXT + `' ao lado do nome. Para desempatar as seleções deles, desça até o final deles e 
         clique no botão de desempate exibido abaixo da tabela.</p>`, true, "OK", null, false);
+}
+
+function updateUIOfGroupsWithManualDrawPending(){
+    let htmlGroupElementAlertIndex;
+    let htmlGroupElementAlert;
+    console.log(teamsDraws);
+    for(let i=0;i<teamsDraws.length;i++){
+        if(teamsDraws[i].status === DRAW_SOLUTION_STATUS.automaticSolutionFailed){
+            console.log(String(teamsDraws[i].group).charCodeAt(0));
+            htmlGroupElementAlertIndex = String(teamsDraws[i].group).charCodeAt(0) - ASCII_CHAR_A_DECIMAL_CODE;
+            htmlGroupElementAlert = document.getElementsByName("groupMatchesAlert")[htmlGroupElementAlertIndex];
+            htmlGroupElementAlert.classList.remove("d-none"); //Turn alert visible
+            htmlGroupElementAlert.textContent = GROUP_MATCHES_DRAW_ALERT_TXT;
+        }
+    }
 }
 
 function handleTeamGroupsPlaces(groupTableDataIndex){
@@ -641,7 +656,7 @@ function handleDraws(groupTableDataIndex, place, teams){
     //Define places by total of points between draw teams and check if draw persist:
     drawTable = defineTeamGroupsPlaces(drawTable, "pt", place);
     console.log([...drawTable]);
-    totalDrawTeamsAfterDirectMatchesCriteriaApplied = totalOfDrawInGroupTableData(drawTable, place);
+    totalDrawTeamsAfterDirectMatchesCriteriaApplied = totalOfDrawInGroupTableDataByPlace(drawTable, place);
     if(totalDrawTeamsAfterDirectMatchesCriteriaApplied === 0){
         console.log("Empate resolvido por pts");
         teamsDraws[teamsDraws.length - 1].status = DRAW_SOLUTION_STATUS.automaticSolutionWorked;
@@ -651,7 +666,7 @@ function handleDraws(groupTableDataIndex, place, teams){
 
     //Define places by gols difference between draw teams and check if draw persist:
     drawTable = defineTeamGroupsPlaces(drawTable, "gd", place);
-    totalDrawTeamsAfterGoalsDiffCriteriaApplied = totalOfDrawInGroupTableData(drawTable, place);          
+    totalDrawTeamsAfterGoalsDiffCriteriaApplied = totalOfDrawInGroupTableDataByPlace(drawTable, place);          
     if(totalDrawTeamsAfterGoalsDiffCriteriaApplied === 0){
         console.log("Empate resolvido por saldo gols");
         teamsDraws[teamsDraws.length - 1].status = DRAW_SOLUTION_STATUS.automaticSolutionWorked;
@@ -661,7 +676,7 @@ function handleDraws(groupTableDataIndex, place, teams){
    
     //Define places by gols scored between draw teams and check if draw persist:
     drawTable = defineTeamGroupsPlaces(drawTable, "gs", place);
-    totalDrawTeamsAfterGoalsScoredCriteriaApplied = totalOfDrawInGroupTableData(drawTable, place);
+    totalDrawTeamsAfterGoalsScoredCriteriaApplied = totalOfDrawInGroupTableDataByPlace(drawTable, place);
     if(totalDrawTeamsAfterGoalsScoredCriteriaApplied === 0){
         console.log("Empate resolvido por gols pró");
         teamsDraws[teamsDraws.length - 1].status = DRAW_SOLUTION_STATUS.automaticSolutionWorked;
@@ -711,7 +726,7 @@ function applyAutomaticDrawSolution(groupTableDataIndex, drawTable){
         ]);
 }
 
-function totalOfDrawInGroupTableData(groupTableDataOrDrawTable, place){
+function totalOfDrawInGroupTableDataByPlace(groupTableDataOrDrawTable, place){
     console.log("Place para analisar: " + place);
     let placesCount=0;
     for(let i=0;i<groupTableDataOrDrawTable.length;i++){
@@ -719,7 +734,13 @@ function totalOfDrawInGroupTableData(groupTableDataOrDrawTable, place){
             placesCount++;
         }
     }
-    return placesCount;
+
+    console.log(placesCount);
+    if(placesCount <= 1){ //If <=1, there isn't draw
+        return 0;
+    }else{
+        return placesCount;
+    }
 }
 
 function getTotalTeamPtsBetweenSpecificTeams(referenceTeam, teams){

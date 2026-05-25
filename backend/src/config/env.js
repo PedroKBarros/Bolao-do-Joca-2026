@@ -4,6 +4,7 @@ const isProductionEnv = process.env.BACKEND_ENV === "prod";
 
 module.exports = {
   isProductionEnv,
+  port: process.env.PORT,
   backendEnv: process.env.BACKEND_ENV,
 
   jwtSecret: process.env.JWT_CHAVE_TOKEN,

@@ -1,0 +1,418 @@
+-- MySQL dump 10.13  Distrib 8.0.27, for Win64 (x86_64)
+--
+-- Host: localhost    Database: bj_2026
+-- ------------------------------------------------------
+-- Server version	8.0.27
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Current Database: `bj_2026`
+--
+
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `bj_2026` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+
+USE `bj_2026`;
+
+--
+-- Table structure for table `cup_groups`
+--
+
+DROP TABLE IF EXISTS `cup_groups`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cup_groups` (
+  `letter` char(1) NOT NULL,
+  PRIMARY KEY (`letter`),
+  CONSTRAINT `chk_letter_range` CHECK ((`letter` between _cp850'A' and _cp850'L'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cup_groups`
+--
+
+LOCK TABLES `cup_groups` WRITE;
+/*!40000 ALTER TABLE `cup_groups` DISABLE KEYS */;
+INSERT INTO `cup_groups` VALUES ('A'),('B'),('C'),('D'),('E'),('F'),('G'),('H'),('I'),('J'),('K'),('L');
+/*!40000 ALTER TABLE `cup_groups` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `group_elements`
+--
+
+DROP TABLE IF EXISTS `group_elements`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `group_elements` (
+  `group_letter` char(1) NOT NULL,
+  `team_name` varchar(255) NOT NULL,
+  PRIMARY KEY (`group_letter`,`team_name`),
+  KEY `team_name` (`team_name`),
+  CONSTRAINT `group_elements_ibfk_1` FOREIGN KEY (`group_letter`) REFERENCES `cup_groups` (`letter`),
+  CONSTRAINT `group_elements_ibfk_2` FOREIGN KEY (`team_name`) REFERENCES `teams` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `group_elements`
+--
+
+LOCK TABLES `group_elements` WRITE;
+/*!40000 ALTER TABLE `group_elements` DISABLE KEYS */;
+INSERT INTO `group_elements` VALUES ('A','África do Sul'),('E','Alemanha'),('H','Arábia Saudita'),('J','Argélia'),('J','Argentina'),('D','Austrália'),('J','Áustria'),('G','Bélgica'),('C','Brasil'),('H','Cabo Verde'),('B','Canadá'),('B','Catar'),('K','Colômbia'),('A','Coreia do Sul'),('E','Costa do Marfim'),('L','Croácia'),('E','Curaçao'),('G','Egito'),('E','Equador'),('C','Escócia'),('H','Espanha'),('D','Estados Unidos'),('I','França'),('L','Gana'),('C','Haiti'),('F','Holanda'),('L','Inglaterra'),('G','Irã'),('F','Japão'),('J','Jordânia'),('C','Marrocos'),('A','México'),('I','Noruega'),('G','Nova Zelândia'),('L','Panamá'),('D','Paraguai'),('K','Portugal'),('B','Repescagem Europa A'),('F','Repescagem Europa B'),('D','Repescagem Europa C'),('A','Repescagem Europa D'),('K','Repescagem Intercontinental 1'),('I','Repescagem Intercontinental 2'),('I','Senegal'),('B','Suíça'),('F','Tunísia'),('H','Uruguai'),('K','Uzbequistão');
+/*!40000 ALTER TABLE `group_elements` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `group_matches`
+--
+
+DROP TABLE IF EXISTS `group_matches`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `group_matches` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `group_letter_1` char(1) NOT NULL,
+  `team_name_1` varchar(255) NOT NULL,
+  `group_letter_2` char(1) NOT NULL,
+  `team_name_2` varchar(255) NOT NULL,
+  `match_info` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `group_letter_1` (`group_letter_1`,`team_name_1`),
+  KEY `group_letter_2` (`group_letter_2`,`team_name_2`),
+  CONSTRAINT `group_matches_ibfk_1` FOREIGN KEY (`group_letter_1`, `team_name_1`) REFERENCES `group_elements` (`group_letter`, `team_name`),
+  CONSTRAINT `group_matches_ibfk_2` FOREIGN KEY (`group_letter_2`, `team_name_2`) REFERENCES `group_elements` (`group_letter`, `team_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=74 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `group_matches`
+--
+
+LOCK TABLES `group_matches` WRITE;
+/*!40000 ALTER TABLE `group_matches` DISABLE KEYS */;
+INSERT INTO `group_matches` VALUES (1,'A','México','A','África do Sul','11/jun 16h, México'),(3,'A','Coreia do Sul','A','Repescagem Europa D','11/jun 23h, México'),(4,'A','Repescagem Europa D','A','África do Sul','18/jun 13h, Estados Unidos'),(5,'A','México','A','Coreia do Sul','18/jun 22h, México'),(6,'A','Repescagem Europa D','A','México','24/jun 22h, México'),(7,'A','África do Sul','A','Coreia do Sul','24/jun 22h, México'),(8,'B','Canadá','B','Repescagem Europa A','12/jun 16h, Canadá'),(9,'B','Catar','B','Suíça','13/jun 16h, Estados Unidos'),(10,'B','Suíça','B','Repescagem Europa A','18/jun 16h, Estados Unidos'),(11,'B','Canadá','B','Catar','18/jun 19h, Canadá'),(12,'B','Suíça','B','Canadá','24/jun 16h, Canadá'),(13,'B','Repescagem Europa A','B','Catar','24/jun 16h, Estados Unidos'),(14,'C','Brasil','C','Marrocos','13/jun 19h, Estados Unidos'),(15,'C','Haiti','C','Escócia','13/jun 22h, Estados Unidos'),(16,'C','Brasil','C','Haiti','19/jun 22h, Estados Unidos'),(17,'C','Escócia','C','Marrocos','19/jun 19h, Estados Unidos'),(18,'C','Escócia','C','Brasil','24/jun 19h, Estados Unidos'),(19,'C','Marrocos','C','Haiti','24/jun 19h, Estados Unidos'),(20,'D','Estados Unidos','D','Paraguai','12/jun 22h, Estados Unidos'),(21,'D','Austrália','D','Repescagem Europa C','14/jun 1h, Canadá'),(22,'D','Repescagem Europa C','D','Paraguai','20/jun 1h, Estados Unidos'),(23,'D','Estados Unidos','D','Austrália','19/jun 16h, Estados Unidos'),(24,'D','Repescagem Europa C','D','Estados Unidos','25/jun 23h, Estados Unidos'),(25,'D','Paraguai','D','Austrália','25/jun 23h, Estados Unidos'),(26,'E','Alemanha','E','Curaçao','14/jun 14h, Estados Unidos'),(27,'E','Costa do Marfim','E','Equador','14/jun 20h, Estados Unidos'),(28,'E','Alemanha','E','Costa do Marfim','20/jun 17h, Canadá'),(29,'E','Equador','E','Curaçao','20/jun 21h, Estados Unidos'),(30,'E','Equador','E','Alemanha','25/jun 17h, Estados Unidos'),(31,'E','Curaçao','E','Costa do Marfim','25/jun 17h, Estados Unidos'),(32,'F','Holanda','F','Japão','14/jun 17h, Estados Unidos'),(33,'F','Repescagem Europa B','F','Tunísia','14/jun 23h, México'),(34,'F','Holanda','F','Repescagem Europa B','20/jun 14h, Estados Unidos'),(35,'F','Tunísia','F','Japão','21/jun 1h, México'),(36,'F','Tunísia','F','Holanda','25/jun 20h, Estados Unidos'),(37,'F','Japão','F','Repescagem Europa B','25/jun 20h, Estados Unidos'),(38,'G','Bélgica','G','Egito','15/jun 16h, Estados Unidos'),(39,'G','Irã','G','Nova Zelândia','15/jun 22h, Estados Unidos'),(40,'G','Bélgica','G','Irã','21/jun 16h, Estados Unidos'),(41,'G','Nova Zelândia','G','Egito','21/jun 22h, Canadá'),(42,'G','Nova Zelândia','G','Bélgica','27/jun 0h, Canadá'),(43,'G','Egito','G','Irã','27/jun 0h, Estados Unidos'),(44,'H','Espanha','H','Cabo Verde','15/jun 13h, Estados Unidos'),(45,'H','Arábia Saudita','H','Uruguai','15/jun 19h, Estados Unidos'),(46,'H','Espanha','H','Arábia Saudita','21/jun 13h, Estados Unidos'),(47,'H','Uruguai','H','Cabo Verde','21/jun 19h, Estados Unidos'),(48,'H','Uruguai','H','Espanha','26/jun 21h, México'),(49,'H','Cabo Verde','H','Arábia Saudita','26/jun 21h, Estados Unidos'),(50,'I','França','I','Senegal','16/jun 16h, Estados Unidos'),(51,'I','Repescagem Intercontinental 2','I','Noruega','16/jun 19h, Estados Unidos'),(52,'I','França','I','Repescagem Intercontinental 2','22/jun 18h, Estados Unidos'),(53,'I','Noruega','I','Senegal','22/jun 21h, Estados Unidos'),(54,'I','Noruega','I','França','26/jun 16h, Estados Unidos'),(55,'I','Senegal','I','Repescagem Intercontinental 2','26/jun 16h, Canadá'),(56,'J','Argentina','J','Argélia','16/jun 22h, Estados Unidos'),(57,'J','Áustria','J','Jordânia','17/jun 1h, Estados Unidos'),(58,'J','Argentina','J','Áustria','22/jun 14h, Estados Unidos'),(59,'J','Jordânia','J','Argélia','17/jun 0h, Estados Unidos'),(60,'J','Jordânia','J','Argentina','27/jun 23h, Estados Unidos'),(61,'J','Argélia','J','Áustria','27/jun 23h, Estados Unidos'),(62,'K','Portugal','K','Repescagem Intercontinental 1','17/jun 14h, Estados Unidos'),(63,'K','Uzbequistão','K','Colômbia','17/jun 23h, México'),(64,'K','Portugal','K','Uzbequistão','23/jun 14h, Estados Unidos'),(65,'K','Colômbia','K','Repescagem Intercontinental 1','23/jun 23h, México'),(66,'K','Colômbia','K','Portugal','27/jun 20h30, Estados Unidos'),(67,'K','Repescagem Intercontinental 1','K','Uzbequistão','27/jun 20h30, Estados Unidos'),(68,'L','Inglaterra','L','Croácia','17/jun 17h, Estados Unidos'),(69,'L','Gana','L','Panamá','17/jun 20h, Canadá'),(70,'L','Inglaterra','L','Gana','23/jun 17h, Estados Unidos'),(71,'L','Panamá','L','Croácia','23/jun 20h, Canadá'),(72,'L','Panamá','L','Inglaterra','27/jun 18h, Estados Unidos'),(73,'L','Croácia','L','Gana','27/jun 18h, Estados Unidos');
+/*!40000 ALTER TABLE `group_matches` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `group_matches_predictions`
+--
+
+DROP TABLE IF EXISTS `group_matches_predictions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `group_matches_predictions` (
+  `sweepstake_users_id` int NOT NULL,
+  `group_match_id` int NOT NULL,
+  `score_team_1` int NOT NULL,
+  `pts_team_1` int NOT NULL,
+  `score_team_2` int NOT NULL,
+  `pts_team_2` int NOT NULL,
+  PRIMARY KEY (`sweepstake_users_id`,`group_match_id`),
+  KEY `group_match_id` (`group_match_id`),
+  CONSTRAINT `fk_gmpid_suid` FOREIGN KEY (`sweepstake_users_id`) REFERENCES `sweepstake_users` (`id`),
+  CONSTRAINT `group_matches_predictions_ibfk_2` FOREIGN KEY (`group_match_id`) REFERENCES `group_matches` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `group_matches_predictions`
+--
+
+LOCK TABLES `group_matches_predictions` WRITE;
+/*!40000 ALTER TABLE `group_matches_predictions` DISABLE KEYS */;
+INSERT INTO `group_matches_predictions` VALUES (83,1,1,1,1,1),(83,3,1,1,1,1),(83,4,1,1,1,1),(83,5,1,1,1,1),(83,6,1,1,1,1),(83,7,1,1,1,1),(83,8,3,3,0,0),(83,9,1,1,1,1),(83,10,2,3,0,0),(83,13,5,3,1,0),(83,32,1,1,1,1),(83,33,1,1,1,1),(83,34,1,1,1,1),(83,35,1,1,1,1),(83,36,1,1,1,1),(83,37,1,1,1,1),(87,1,2,3,1,0),(87,3,1,1,1,1),(87,4,0,1,0,1),(87,5,2,3,1,0),(87,6,0,0,1,3),(87,7,1,1,1,1),(87,8,2,3,1,0),(87,9,2,3,1,0),(87,10,1,1,1,1),(87,11,1,1,1,1),(87,12,3,3,0,0),(87,13,3,3,0,0),(87,14,1,1,1,1),(87,15,0,1,0,1),(87,16,1,1,1,1),(87,17,1,1,1,1),(87,18,1,1,1,1),(87,19,1,1,1,1),(87,26,3,3,0,0),(87,27,1,1,1,1),(87,28,1,3,0,0),(87,29,1,3,0,0),(87,30,0,0,1,3),(87,31,0,0,1,3),(87,68,1,1,1,1),(87,69,1,1,1,1),(87,70,1,1,1,1),(87,71,1,1,1,1),(87,72,1,1,1,1),(87,73,1,1,1,1);
+/*!40000 ALTER TABLE `group_matches_predictions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `knockout_match_teams_rules`
+--
+
+DROP TABLE IF EXISTS `knockout_match_teams_rules`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `knockout_match_teams_rules` (
+  `knockout_stage_name` varchar(255) NOT NULL,
+  `match_number` int NOT NULL,
+  `rule_team_1` varchar(255) NOT NULL,
+  `rule_team_2` varchar(255) NOT NULL,
+  `match_info` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`knockout_stage_name`,`match_number`),
+  CONSTRAINT `knockout_match_teams_rules_ibfk_1` FOREIGN KEY (`knockout_stage_name`) REFERENCES `knockout_stages` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `knockout_match_teams_rules`
+--
+
+LOCK TABLES `knockout_match_teams_rules` WRITE;
+/*!40000 ALTER TABLE `knockout_match_teams_rules` DISABLE KEYS */;
+INSERT INTO `knockout_match_teams_rules` VALUES ('32-Avos de Final',73,'2┬║ Grupo A','2┬║ Grupo B','28/jun de 2026 16h, Estados Unidos'),('32-Avos de Final',74,'1┬║ Grupo E','3┬║ Col. Grupos A/B/C/D/F','29/jun de 2026 14h, Estados Unidos'),('32-Avos de Final',75,'1┬║ Grupo F','2┬║ Grupo C','29/jun de 2026 17:30h, M├®xico'),('32-Avos de Final',76,'1┬║ Grupo C','2┬║ Grupo F','29/jun de 2026 22h, M├®xico'),('32-Avos de Final',77,'1┬║ Grupo I','3┬║ Col. Grupos C/D/F/G/H','30/jun de 2026 14h, Estados Unidos'),('32-Avos de Final',78,'2┬║ Grupo E','2┬║ Grupo I','30/jun de 2026 18h, Estados Unidos'),('32-Avos de Final',79,'1┬║ Grupo A','3┬║ Col. Grupos C/E/F/H/I','30/jun de 2026 22h, M├®xico'),('32-Avos de Final',80,'1┬║ Grupo L','3┬║ Col. Grupos E/H/I/J/K','01/jul de 2026 13h, Estados Unidos'),('32-Avos de Final',81,'1┬║ Grupo D','3┬║ Col. Grupos B/E/F/I/J','01/jul de 2026 17h, Estados Unidos'),('32-Avos de Final',82,'1┬║ Grupo G','3┬║ Col. Grupos A/E/H/I/J','01/jul de 2026 21h, Estados Unidos'),('32-Avos de Final',83,'2┬║ Grupo K','2┬║ Grupo L','02/jul de 2026 16h, Estados Unidos'),('32-Avos de Final',84,'1┬║ Grupo H','2┬║ Grupo J','02/jul de 2026 20h, Estados Unidos'),('32-Avos de Final',85,'1┬║ Grupo B','3┬║ Col. Grupos E/F/G/I/J','02/jul de 2026 ?h, Canad├í'),('32-Avos de Final',86,'1┬║ Grupo J','2┬║ Grupo H','03/jul de 2026 00h, Estados Unidos'),('32-Avos de Final',87,'1┬║ Grupo K','3┬║ Col. Grupos D/E/I/J/L','03/jul de 2026 15h, Estados Unidos'),('32-Avos de Final',88,'2┬║ Grupo D','2┬║ Grupo G','03/jul de 2026 ?h, Estados Unidos'),('Disputa do 3┬║ Lugar',103,'Perd. Jogo 101','Perd. Jogo 102','18/jul de 2026 18h, Estados Unidos'),('Final',104,'Venc. Jogo 101','Venc. Jogo 102','19/jul de 2026 16h, Estados Unidos'),('Oitavas de Final',89,'Venc. Jogo 74','Venc. Jogo 77','04/jul de 2026 14h, Estados Unidos'),('Oitavas de Final',90,'Venc. Jogo 73','Venc. Jogo 75','04/jul de 2026 18h, Estados Unidos'),('Oitavas de Final',91,'Venc. Jogo 76','Venc. Jogo 78','05/jul de 2026 17h, Estados Unidos'),('Oitavas de Final',92,'Venc. Jogo 79','Venc. Jogo 80','05/jul de 2026 21h, M├®xico'),('Oitavas de Final',93,'Venc. Jogo 83','Venc. Jogo 84','06/jul de 2026 16h, Estados Unidos'),('Oitavas de Final',94,'Venc. Jogo 81','Venc. Jogo 82','06/jul de 2026 21h, Estados Unidos'),('Oitavas de Final',95,'Venc. Jogo 86','Venc. Jogo 88','07/jul de 2026 13h, Estados Unidos'),('Oitavas de Final',96,'Venc. Jogo 85','Venc. Jogo 87','07/jul de 2026 17h, Estados Unidos'),('Quartas de Final',97,'Venc. Jogo 89','Venc. Jogo 90','09/jul de 2026 17h, Estados Unidos'),('Quartas de Final',98,'Venc. Jogo 93','Venc. Jogo 94','10/jul de 2026 16h, Estados Unidos'),('Quartas de Final',99,'Venc. Jogo 91','Venc. Jogo 92','11/jul de 2026 18h, Estados Unidos'),('Quartas de Final',100,'Venc. Jogo 95','Venc. Jogo 96','11/jul de 2026 22h, Estados Unidos'),('semifinal',101,'Venc. Jogo 97','Venc. Jogo 98','14/jul de 2026 16h, Estados Unidos'),('semifinal',102,'Venc. Jogo 99','Venc. Jogo 100','15/jul de 2026 16h, Estados Unidos');
+/*!40000 ALTER TABLE `knockout_match_teams_rules` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `knockout_stages`
+--
+
+DROP TABLE IF EXISTS `knockout_stages`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `knockout_stages` (
+  `name` varchar(255) NOT NULL,
+  `order_num` int NOT NULL,
+  PRIMARY KEY (`name`),
+  CONSTRAINT `chk_order_range` CHECK ((`order_num` between _cp850'1' and _cp850'6'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `knockout_stages`
+--
+
+LOCK TABLES `knockout_stages` WRITE;
+/*!40000 ALTER TABLE `knockout_stages` DISABLE KEYS */;
+INSERT INTO `knockout_stages` VALUES ('32-Avos de Final',1),('Disputa do 3┬║ Lugar',5),('Final',6),('Oitavas de Final',2),('Quartas de Final',3),('Semifinal',4);
+/*!40000 ALTER TABLE `knockout_stages` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `manual_solutions_group_stage_draws`
+--
+
+DROP TABLE IF EXISTS `manual_solutions_group_stage_draws`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `manual_solutions_group_stage_draws` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `place` int NOT NULL,
+  `sweepstake_user_id` int NOT NULL,
+  `group_letter` char(1) NOT NULL,
+  `team_name` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `group_letter` (`group_letter`,`team_name`),
+  KEY `sweepstake_user_id` (`sweepstake_user_id`),
+  CONSTRAINT `manual_solutions_group_stage_draws_ibfk_1` FOREIGN KEY (`group_letter`, `team_name`) REFERENCES `group_elements` (`group_letter`, `team_name`),
+  CONSTRAINT `manual_solutions_group_stage_draws_ibfk_2` FOREIGN KEY (`sweepstake_user_id`) REFERENCES `sweepstake_users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `manual_solutions_group_stage_draws`
+--
+
+LOCK TABLES `manual_solutions_group_stage_draws` WRITE;
+/*!40000 ALTER TABLE `manual_solutions_group_stage_draws` DISABLE KEYS */;
+INSERT INTO `manual_solutions_group_stage_draws` VALUES (1,2,87,'B','Repescagem Europa A'),(2,1,87,'B','Suíça'),(3,1,87,'C','Brasil'),(4,2,87,'C','Marrocos');
+/*!40000 ALTER TABLE `manual_solutions_group_stage_draws` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sweepstake`
+--
+
+DROP TABLE IF EXISTS `sweepstake`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sweepstake` (
+  `name` varchar(255) NOT NULL,
+  `keyword_hash` varchar(255) NOT NULL,
+  `quota` decimal(10,2) DEFAULT NULL,
+  `group_link` varchar(600) DEFAULT NULL,
+  `start_date_participation` timestamp NOT NULL,
+  `final_date_participation` timestamp NOT NULL,
+  `is_closed` tinyint(1) NOT NULL DEFAULT '0',
+  `status` varchar(255) NOT NULL,
+  `author_user_id` int DEFAULT NULL,
+  PRIMARY KEY (`name`),
+  KEY `fk_user_id` (`author_user_id`),
+  CONSTRAINT `fk_user_id` FOREIGN KEY (`author_user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sweepstake`
+--
+
+LOCK TABLES `sweepstake` WRITE;
+/*!40000 ALTER TABLE `sweepstake` DISABLE KEYS */;
+INSERT INTO `sweepstake` VALUES ('Bol├úo Teste','$2b$10$S4o.Q4gDkEL1lqu5MxTnHuk72h5Ms4B1pAOipawQV/lUlM6JxRMvi',25.00,NULL,'0000-00-00 00:00:00','0000-00-00 00:00:00',0,'ABC',205),('Bol├úo Teste 2','$2b$10$S4o.Q4gDkEL1lqu5MxTnHuk72h5Ms4B1pAOipawQV/lUlM6JxRMvi',50.00,NULL,'0000-00-00 00:00:00','0000-00-00 00:00:00',0,'XYZ',205),('Bolao 22','$2b$10$qDwVgPaDwRIaPmXq0KfQq.Xdqf7L5TDddtmiYjhryoQlKafciN2EW',100.00,'chat.whatsapp.com/anFKl2i4kdjdnfswi20041dfkk','2026-04-28 03:00:00','2026-04-30 03:00:00',0,'não iniciado',1),('Bolao abc','$2b$10$fMPQ8Hd7TNyzCDnqTWDvk.UXQ5sAzf8iIE1wConooL7mpSHQqeV2O',12.00,'chat.whatsapp.com/1erpOjfmfi293kdmai1233','2026-04-30 03:00:00','2026-04-30 03:00:00',0,'não iniciado',1),('Bolao da Mami','$2b$10$2WFZz7tyJJ6aNtgF.fRTeOx.kdMEVIsiOKq/5p4lMkPo49g/sYvTC',25.00,'chat.whatsapp.com/ahghUhrkJu292i29Lj9303','2026-05-11 03:00:00','2026-05-15 03:00:00',0,'não iniciado',1),('Bolao da Mami 2','$2b$10$KqAef/t2FFnxUXyMG117K.vviT8U2Tc5oEgKYGzcpH0KoQWRz9U3y',0.00,'chat.whatsapp.com/hghUrjKi292dJkrklri23gt','2026-05-12 03:00:00','2026-05-12 03:00:00',0,'não iniciado',1),('Bolao Teste 100','$2b$10$OUGOVoQI5ifhV8k/hCnnEuDlVUWiS/PHxa2RNjcNVo7yzwf7UFJs.',0.00,'chat.whatsapp.com/aHGtRiO293ODKDjgitrorp','2026-04-17 03:00:00','2026-04-24 03:00:00',0,'não iniciado',1),('Bolao Teste 2026','$2b$10$EEH4.CGjapfOfoP4Dli2EOMiXrQ.Nvfkzc0ZPyZJLtSAphpOS65Aq',0.00,'chat.whatsapp.com/1984Hfku49kKh5485032','2026-05-02 03:00:00','2026-05-02 03:00:00',0,'não iniciado',1),('Bolao Teste 2027','$2b$10$5DYZX0gILKyk2A.1AKQPEuEUnOJaotSxwC3u5QkjPl.OYx9aLSJUi',0.00,'chat.whatsapp.com/ahHt57jhK859fkhKhrues','2026-05-02 03:00:00','2026-05-02 03:00:00',0,'não iniciado',1),('Bolao Teste 2030','$2b$10$NJ76NAteIBb6xCdVMOkuhu7ozNu6clx1Yo.eFqkLrXyxqhBSWMvQC',10.00,'chat.whatsapp.com/h5yHjfkrio103ifoiflPork36','2026-05-02 03:00:00','2026-05-02 03:00:00',0,'não iniciado',1),('Bolao Teste 2031','$2b$10$nCfe.tVhPffGAYOMFtN2fefls5BPpQT7B42OyD.Ye2U7Vf./PsSia',0.00,'chat.whatsapp.com/ghThrirkl193kLkJRKdda123','2026-05-02 03:00:00','2026-05-02 03:00:00',0,'não iniciado',1),('Bolao xyz','$2b$10$x04qVWlDaV6rh5I2WyUJqe3BXtZyehh5trj4vzibd812jXfC1mN1e',12.00,'chat.whatsapp.com/Opgor9384ssmKuiURJ12','2026-04-30 03:00:00','2026-04-30 03:00:00',0,'não iniciado',1),('bolao_amigos_teste','$2b$10$S4o.Q4gDkEL1lqu5MxTnHuk72h5Ms4B1pAOipawQV/lUlM6JxRMvi',50.00,NULL,'0000-00-00 00:00:00','0000-00-00 00:00:00',0,'',NULL),('bolao_familia_teste','$2b$10$P7KhWa/yYyjqj0VwVwEPOOlcLTG2dR1TAYDutb0.3ZsfbSaHEqvzK',25.00,NULL,'0000-00-00 00:00:00','0000-00-00 00:00:00',0,'',NULL),('Sweepstake test api','$2b$10$CgjrJn8VPzShFISPBxIDCeI41zZi25WglHdJwAyGDtzdoTT/kFv/e',0.00,'chat.whatsapp.com/Opgor9384ssmKuiURJ12','2026-05-02 03:00:00','2026-05-02 03:00:00',0,'não iniciado',667),('Sweepstake test api 2','$2b$10$.4JAi9HUDFzlH67G/9pyJu8Ky.fVVQzToINm.PCSTO.zYqoAVZa6e',99999999.99,'chat.whatsapp.com/Opgor9384ssmKuiURJ12','2026-05-02 03:00:00','2026-05-12 03:00:00',0,'não iniciado',667),('Teste','$2b$10$yu2h9C26tw0td3fsMTdFqOTj1yc2ClaQCdLPIombomXg5B3izx9xm',100.00,'chat.whatsapp.com/abcferptotjgm569dflsls123','2026-04-16 03:00:00','2026-04-16 03:00:00',0,'não iniciado',1),('Teste 58gkgf','$2b$10$auqYlrWEdeVEzpayL8OoPO9WeCBIPs7DUkJmobqvK86cE3mr5V2.y',1.00,'chat.whatsapp.com/ghYtrhr65hdgfsfacxa1d2','2026-05-05 03:00:00','2026-05-05 03:00:00',0,'não iniciado',1),('Teste ahgkjtu','$2b$10$jSTtc4abZZvNeN.MLvEiTuSZEe/PrnnJ0W/SBmp3OVNUUYSJUthTq',0.00,'chat.whatsapp.com/fjljtiutLkfo303kfhLjgitoe12','2026-05-05 03:00:00','2026-05-05 03:00:00',0,'não iniciado',1),('Teste bhgjtk','$2b$10$Nt7lhic874Si0iymxy2uwev0CtS2boSO6YKLbptMTdUFBBchctm56',0.00,'chat.whatsapp.com/ghYhgrjrl305lkfJlDORK12','2026-05-05 03:00:00','2026-05-05 03:00:00',0,'não iniciado',1),('Teste bolao do capeta','$2b$10$MOCcxlaaacOOq1lvz0vJG.wI6G5q9m79Z94UKVaa63l/VdAqe.5.G',0.00,'chat.whatsapp.com/ghYryh383kjJKhrklwo20','2026-05-25 03:00:00','2026-05-25 03:00:00',0,'não iniciado',1),('Teste xyzabc','$2b$10$8WUGnmvfcLfLkGoKNor4Aek4GtUZJKoSg1bH8VwQBj89.FsYb8tbS',0.00,'chat.whatsapp.com/afjHjtkr9iIkLRO123lgogoJl','2026-05-05 03:00:00','2026-05-05 03:00:00',0,'não iniciado',1),('Teste10','$2b$10$NrcPwBnBeVqM7o3Y/SkAr.tmTVXGt6K5t.AX409XAjXjtvF9BcUku',100.00,'chat.whatsapp.com/abHGriwlHpoirk12dfgreaqw45','2026-04-20 03:00:00','2026-04-30 03:00:00',0,'não iniciado',1),('Teste11','$2b$10$u7Znb9KO1a7yLIsKLXLa1ei9y.94ugG/1T3CsHBg3Lk9VyZMmilf2',100.00,'chat.whatsapp.com/abCGh1204YRqdkLoap123','2026-04-16 03:00:00','2026-04-30 03:00:00',0,'não iniciado',1),('teste111','$2b$10$kyPBluRlVN3aju18D92yk.RiZdpGgh2ERwvKvrX8ArJiNpB0Kf.l.',0.00,'chat.whatsapp.com/agjUlrP103Opfkfnso34ffs','2026-04-17 03:00:00','2026-04-18 03:00:00',0,'não iniciado',1),('Teste12','$2b$10$HmCJbzxkNwrNu4pMXAAoVeIpl/y62RPPdUGciHTf1I.NFO1bqJaWS',100.00,'chat.whatsapp.com/abcGFT12JkdiekLop1267Jkd','2026-04-16 03:00:00','2026-04-16 03:00:00',0,'não iniciado',1),('Teste13','$2b$10$HHjR417a1jRX3i9LUiA/4ecJC8jY.xjBdyQujVkADct9RrlsXd2Xi',100.00,'chat.whatsapp.com/abGFHt164risoqpsj13Rtedfgd','2026-04-16 03:00:00','2026-04-30 03:00:00',0,'não iniciado',1),('Teste145ggyuy','$2b$10$PoPI2d7MLXOoxYBnYFyJae7iI.ZXtn5cUDJiYgJ3RMoMuK3A6UeOK',0.00,'chat.whatsapp.com/hgjturyHhtyeu28djaghe1','2026-05-05 03:00:00','2026-05-05 03:00:00',0,'não iniciado',1),('Teste15','$2b$10$3h/O/Xy67IQkUyuPxR327OaQ2tPv.NxQxx5Kve5caQRjFKir/LDfq',100.00,'chat.whatsapp.com/aBCGhryt576Jklqoeidjs12d','2026-04-16 03:00:00','2026-04-30 03:00:00',0,'não iniciado',1),('Teste17','$2b$10$F.Tn6gTTFcxVtTaSkgyg8.gjRDZbz/wd5LjdOoJloF2imsS7lJRu2',100.00,'chat.whatsapp.com/aBGH12kgirl1030dgetq129po3','2026-04-16 03:00:00','2026-04-30 03:00:00',0,'não iniciado',1),('Teste2','$2b$10$hnvas1kh5ztHWAAM6c4rOe40O.D9ZwITvCd3.nWo/icCjmedzvfcq',100.00,'chat.whatsapp.com/abcdefgthyuio12er456','2026-04-16 03:00:00','2026-04-16 03:00:00',0,'não iniciado',1),('Teste20','$2b$10$s/bLZQMMa92OEl8EDZxbduOQLQaAnDjGIIhMtsEPATl.cGxozvGta',100.00,'chat.whatsapp.com/aBGhtyUi19384UklCpo12','2026-04-16 03:00:00','2026-04-16 03:00:00',0,'não iniciado',1),('Teste3','$2b$10$epvcS0nU84turUmv7/aIJ.cWtj7IpTA5tGDc/mUn18ONdyF.lPTVC',100.00,'chat.whatsapp.com/abcgt12rryhrdaw24tyu','2026-04-16 03:00:00','2026-04-16 03:00:00',0,'não iniciado',1),('Teste30','$2b$10$3OHEw5BL41vKSyZ9HdY1yewNixEPznL.QvRBi2T/K.QAjSpm.tMnu',100.00,'chat.whatsapp.com/abC12hTRUkcjru1230dppad','2026-04-16 03:00:00','2026-04-16 03:00:00',0,'não iniciado',1),('Teste4','$2b$10$jNe/Cb6rO3po09n8OK27Ouw1V3nWpZmGxmWE9JhIRgMJQcwljQIgK',100.00,'chat.whatsapp.com/agtjro395jgutjrl405d','2026-04-16 03:00:00','2026-04-16 03:00:00',0,'não iniciado',1),('Teste7','$2b$10$JW7.4bC99uXwm/7XQtIzRu4bAo0I4Sa.0uucqjkMhhNGO6UTClXke',100.00,'chat.whatsapp.com/abfghtry56oek789dgfd','2026-04-16 03:00:00','2026-04-16 03:00:00',0,'não iniciado',1),('Teste8','$2b$10$iIMlm3ftb34f7Fy4.vFEjOL7104oM5eH/1XYBlD/0pAEyMX13IRai',100.00,'chat.whatsapp.com/abcghtruyi103jhGdHr10','2026-04-16 03:00:00','2026-04-16 03:00:00',0,'não iniciado',1),('Teste9','$2b$10$hwGWep5RIILLA/l5Lpz2fOLgvqJl9yj994BGtSZA5cbhSd/k8f7La',100.00,'chat.whatsapp.com/abHgRt12fjturo56lao8912','2026-04-16 03:00:00','2026-04-16 03:00:00',0,'não iniciado',1),('Testehotrporieida1','$2b$10$xPD2unG4NPkzZF4MgkG.yuv.5BYxgKHSA.dWOZbkCOlGeuCASERVC',1.00,'chat.whatsapp.com/ghteu7Jrhriri2i289fjfjaas','2026-05-05 03:00:00','2026-05-26 03:00:00',0,'não iniciado',1);
+/*!40000 ALTER TABLE `sweepstake` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sweepstake_logs`
+--
+
+DROP TABLE IF EXISTS `sweepstake_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sweepstake_logs` (
+  `sweepstake_name` varchar(255) NOT NULL,
+  `date_and_hour` timestamp NOT NULL,
+  `user_id` int NOT NULL,
+  `event_name` varchar(255) NOT NULL,
+  `details` varchar(1275) DEFAULT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `idx_column_id` (`id`),
+  KEY `fk_sweepstake_name` (`sweepstake_name`),
+  CONSTRAINT `fk_sweepstake_name` FOREIGN KEY (`sweepstake_name`) REFERENCES `sweepstake` (`name`),
+  CONSTRAINT `sweepstake_logs_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=97 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sweepstake_logs`
+--
+
+LOCK TABLES `sweepstake_logs` WRITE;
+/*!40000 ALTER TABLE `sweepstake_logs` DISABLE KEYS */;
+INSERT INTO `sweepstake_logs` VALUES ('Teste15','2026-04-16 18:32:20',1,'Criação','Bolão criado.',1),('Teste17','2026-04-16 18:34:30',1,'Criação','Bolão criado.',2),('Teste20','2026-04-16 18:38:24',1,'Criação','Bolão criado.',3),('Teste30','2026-04-16 18:42:32',1,'Criação','Bolão criado.',4),('Bolao 22','2026-04-16 21:51:25',1,'Criação','Bolão criado.',5),('teste111','2026-04-17 20:29:53',1,'Criação','Bolão criado.',6),('Bolao Teste 100','2026-04-17 20:41:52',1,'Criação','Bolão criado.',7),('Bolao abc','2026-04-30 04:13:52',1,'Criação','Bolão criado.',8),('Bolao xyz','2026-04-30 04:15:11',1,'Criação','Bolão criado.',9),('Bolao Teste 2026','2026-05-02 05:17:13',1,'Criação','Bolão criado.',11),('Bolao Teste 2027','2026-05-02 05:20:14',1,'Criação','Bolão criado.',12),('Bolao Teste 2030','2026-05-02 06:43:14',1,'Criação','Bolão criado.',45),('Bolao Teste 2031','2026-05-02 06:49:59',1,'Criação','Bolão criado.',52),('Sweepstake test api','2026-05-02 15:49:15',667,'Criação','Bolão criado.',73),('Sweepstake test api 2','2026-05-02 15:49:15',667,'Criação','Bolão criado.',74),('Teste xyzabc','2026-05-05 19:19:58',1,'Criação','Bolão criado.',75),('Teste bhgjtk','2026-05-05 19:21:07',1,'Criação','Bolão criado.',76),('Teste ahgkjtu','2026-05-05 19:21:56',1,'Criação','Bolão criado.',77),('Teste 58gkgf','2026-05-05 19:23:05',1,'Criação','Bolão criado.',78),('Teste145ggyuy','2026-05-05 19:26:02',1,'Criação','Bolão criado.',79),('Testehotrporieida1','2026-05-05 19:27:17',1,'Criação','Bolão criado.',80),('Teste145ggyuy','2026-05-06 02:03:50',221,'{\"name\":\"Entrada\",\"details\":\"Novo participante entrou no bolão.\"}','Novo participante entrou no bolão.',81),('Bolao Teste 2030','2026-05-06 02:04:27',221,'{\"name\":\"Entrada\",\"details\":\"Novo participante entrou no bolão.\"}','Novo participante entrou no bolão.',82),('Testehotrporieida1','2026-05-06 02:05:07',221,'{\"name\":\"Entrada\",\"details\":\"Novo participante entrou no bolão.\"}','Novo participante entrou no bolão.',83),('Teste ahgkjtu','2026-05-06 02:16:16',221,'{\"name\":\"Entrada\",\"details\":\"Novo participante entrou no bolão.\"}','Novo participante entrou no bolão.',84),('Bolao Teste 2031','2026-05-06 23:07:53',221,'{\"name\":\"Entrada\",\"details\":\"Novo participante entrou no bolão.\"}','Novo participante entrou no bolão.',85),('Bolao Teste 2030','2026-05-12 02:26:40',672,'{\"name\":\"Entrada\",\"details\":\"Novo participante entrou no bolão.\"}','Novo participante entrou no bolão.',86),('Bolao da Mami','2026-05-12 02:28:39',1,'Criação','Bolão criado.',87),('Bolao da Mami','2026-05-12 02:29:17',672,'{\"name\":\"Entrada\",\"details\":\"Novo participante entrou no bolão.\"}','Novo participante entrou no bolão.',88),('Bolao Teste 2030','2026-05-12 22:55:43',673,'{\"name\":\"Entrada\",\"details\":\"Novo participante entrou no bolão.\"}','Novo participante entrou no bolão.',89),('Bolao Teste 2030','2026-05-12 22:58:37',674,'{\"name\":\"Entrada\",\"details\":\"Novo participante entrou no bolão.\"}','Novo participante entrou no bolão.',90),('Bolao da Mami 2','2026-05-12 23:09:03',1,'Criação','Bolão criado.',91),('Bolao Teste 2026','2026-05-12 23:11:16',673,'{\"name\":\"Entrada\",\"details\":\"Novo participante entrou no bolão.\"}','Novo participante entrou no bolão.',92),('Bolao da Mami','2026-05-14 14:06:14',222,'{\"name\":\"Entrada\",\"details\":\"Novo participante entrou no bolão.\"}','Novo participante entrou no bolão.',93),('Bolao da Mami 2','2026-05-14 15:00:52',669,'{\"name\":\"Entrada\",\"details\":\"Novo participante entrou no bolão.\"}','Novo participante entrou no bolão.',94),('Bolao da Mami 2','2026-05-26 00:37:12',675,'{\"name\":\"Entrada\",\"details\":\"Novo participante entrou no bolão.\"}','Novo participante entrou no bolão.',95),('Teste bolao do capeta','2026-05-26 00:38:29',1,'Criação','Bolão criado.',96);
+/*!40000 ALTER TABLE `sweepstake_logs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `sweepstake_users`
+--
+
+DROP TABLE IF EXISTS `sweepstake_users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sweepstake_users` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `sweepstake_name` varchar(255) DEFAULT NULL,
+  `user_id` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `sweepstake_name` (`sweepstake_name`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `sweepstake_users_ibfk_1` FOREIGN KEY (`sweepstake_name`) REFERENCES `sweepstake` (`name`),
+  CONSTRAINT `sweepstake_users_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=93 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sweepstake_users`
+--
+
+LOCK TABLES `sweepstake_users` WRITE;
+/*!40000 ALTER TABLE `sweepstake_users` DISABLE KEYS */;
+INSERT INTO `sweepstake_users` VALUES (1,'Bol├úo Teste',205),(2,'Bol├úo Teste 2',205),(3,'Bolao Teste 100',1),(4,'Bolao abc',1),(5,'Bolao xyz',1),(7,'Bolao Teste 2026',1),(8,'Bolao Teste 2027',1),(41,'Bolao Teste 2030',1),(48,'Bolao Teste 2031',1),(69,'Sweepstake test api',667),(70,'Sweepstake test api 2',667),(71,'Teste xyzabc',1),(72,'Teste bhgjtk',1),(73,'Teste ahgkjtu',1),(74,'Teste 58gkgf',1),(75,'Teste145ggyuy',1),(76,'Testehotrporieida1',1),(77,'Teste145ggyuy',221),(78,'Bolao Teste 2030',221),(79,'Testehotrporieida1',221),(80,'Teste ahgkjtu',221),(81,'Bolao Teste 2031',221),(82,'Bolao Teste 2030',672),(83,'Bolao da Mami',1),(84,'Bolao da Mami',672),(85,'Bolao Teste 2030',673),(86,'Bolao Teste 2030',674),(87,'Bolao da Mami 2',1),(88,'Bolao Teste 2026',673),(89,'Bolao da Mami',222),(90,'Bolao da Mami 2',669),(91,'Bolao da Mami 2',675),(92,'Teste bolao do capeta',1);
+/*!40000 ALTER TABLE `sweepstake_users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `teams`
+--
+
+DROP TABLE IF EXISTS `teams`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `teams` (
+  `name` varchar(255) NOT NULL,
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `teams`
+--
+
+LOCK TABLES `teams` WRITE;
+/*!40000 ALTER TABLE `teams` DISABLE KEYS */;
+INSERT INTO `teams` VALUES ('├üfrica do Sul'),('├üustria'),('Alemanha'),('Ar├íbia Saudita'),('Arg├®lia'),('Argentina'),('Austr├ília'),('B├®lgica'),('Brasil'),('Cabo Verde'),('Canad├í'),('Catar'),('Col├┤mbia'),('Coreia do Sul'),('Costa do Marfim'),('Cro├ícia'),('Cura├ºao'),('Egito'),('Equador'),('Esc├│cia'),('Espanha'),('Estados Unidos'),('Fran├ºa'),('Gana'),('Haiti'),('Holanda'),('Inglaterra'),('Ir├ú'),('Jap├úo'),('Jord├ónia'),('M├®xico'),('Marrocos'),('Noruega'),('Nova Zel├óndia'),('Panam├í'),('Paraguai'),('Portugal'),('Repescagem Europa A'),('Repescagem Europa B'),('Repescagem Europa C'),('Repescagem Europa D'),('Repescagem Intercontinental 1'),('Repescagem Intercontinental 2'),('Senegal'),('Su├¡├ºa'),('Tun├¡sia'),('Uruguai'),('Uzbequist├úo');
+/*!40000 ALTER TABLE `teams` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `user_knockout_stage_predictions`
+--
+
+DROP TABLE IF EXISTS `user_knockout_stage_predictions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user_knockout_stage_predictions` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `knockout_stage_name` varchar(255) DEFAULT NULL,
+  `sweepstake_users_id` int NOT NULL,
+  `team_1_name` varchar(255) NOT NULL,
+  `team_2_name` varchar(255) NOT NULL,
+  `score_team_1` int NOT NULL,
+  `score_team_2` int NOT NULL,
+  `team_1_chosen_by_user` tinyint(1) NOT NULL DEFAULT '0',
+  `team_2_chosen_by_user` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `knockout_stage_name` (`knockout_stage_name`),
+  KEY `team_1_name` (`team_1_name`),
+  KEY `team_2_name` (`team_2_name`),
+  KEY `fk_ukspid_suid` (`sweepstake_users_id`),
+  CONSTRAINT `fk_ukspid_suid` FOREIGN KEY (`sweepstake_users_id`) REFERENCES `sweepstake_users` (`id`),
+  CONSTRAINT `user_knockout_stage_predictions_ibfk_1` FOREIGN KEY (`knockout_stage_name`) REFERENCES `knockout_stages` (`name`),
+  CONSTRAINT `user_knockout_stage_predictions_ibfk_3` FOREIGN KEY (`team_1_name`) REFERENCES `teams` (`name`),
+  CONSTRAINT `user_knockout_stage_predictions_ibfk_4` FOREIGN KEY (`team_2_name`) REFERENCES `teams` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user_knockout_stage_predictions`
+--
+
+LOCK TABLES `user_knockout_stage_predictions` WRITE;
+/*!40000 ALTER TABLE `user_knockout_stage_predictions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user_knockout_stage_predictions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `users` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `password_hash` varchar(255) NOT NULL,
+  `is_admin` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `name` varchar(255) NOT NULL,
+  `whatsapp_number` varchar(20) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `whatsapp_number` (`whatsapp_number`)
+) ENGINE=InnoDB AUTO_INCREMENT=676 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `users`
+--
+
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (1,'$2b$10$8DDB6TWfB/OX.UTC282ddOnh1qiUaXVpPVtUAx05nyFN7cXku03zO',1,'2026-04-14 05:17:27','Pedro','+5521985573708'),(201,'$2b$10$QvH2n5mNhzta1YvcWR3sauu9vlgFJdrlsR2a8I/50KD2x6Pqj3CwW',0,'2026-03-04 19:52:25','user_frontend','+5521977886655'),(202,'$2b$10$kt4WeUf/mQ.dPdGba8Foju8s2bRltsmj1kiRcmZS68guljRTLDoYW',0,'2026-03-05 02:14:48','user_frontend4','21933552299'),(203,'$2b$10$z2Q2pH1A3LpO1UDUuGuHE.TIAvRToJOjz6xaMCfmhpWfBU4nmR5D6',0,'2026-03-05 02:16:14','user_frontend5','+5521944337798'),(205,'$2b$10$DRZ0ZTjsWnIQHsbA2py/9OXKNUVwGX7uiU6BRubRGaIAfHj.UIVW2',0,'2026-03-05 02:53:11','user_frontend7','21922334455'),(219,'$2b$10$tnensyMdUg8PROKkeiXUmebhkCHK.PB166wslYlAtFPodDiHJHyu6',0,'2026-03-05 03:30:37','Dona Elza','21988646660'),(220,'$2b$10$LePcDdU.oOfVnJV/dgOJX.EyRt3O2ByxJfK8ZAQ4J9t8J/nS99sOG',0,'2026-03-07 10:10:40','pedroteste','+5521987654321'),(221,'$2b$10$XJEli7rKQIxbl1KpRHKKEe/28XhXasx8ywFDf491FIlWoIlaIAiS6',0,'2026-03-29 08:26:43','Teste','+5521977777777'),(222,'$2b$10$dXhT.ToiIDFzgqfuseCjrOKH..iu5Kzw3LQ4LFN5IRGeQq29ltBX2',0,'2026-04-04 08:16:30','Teste123','+5521966666666'),(223,'$2b$10$jda2.ebX/Ut4V.4TetCgv.SHThtvsuBBr9pqkdG3ouiIZOWJ0S73.',0,'2026-04-04 08:40:36','Pedro','+5521955555555'),(229,'$2b$10$Crn3EEeQuEq4xkVxStvEP.gTgAP64ZBoFa2lVj7feGCgnTzRiPHGO',0,'2026-04-13 22:29:48','userfrontend20','+5521976777879'),(664,'$2b$10$AK0UoKDqAKYc3A8ZemEmuOONcnz9I0FrH4Y1JhTL05f7WmhMIJKmu',0,'2026-05-02 15:49:13','user test api','998765432'),(665,'$2b$10$RpgEzrzuuY/HjMcYNRPp3O99UAsIv23/nSTDPEZ/etmf2jaiZ9Kcu',1,'2026-05-02 15:49:14','user test api','21987654321'),(666,'$2b$10$dP0nDuxNKhIjl.ua4dVfGOA.tut4Mwx1K7utnfvFMb4I8/TY8UroW',0,'2026-05-02 15:49:14','user test api sweeps','21999876543'),(667,'$2b$10$gturvlFbgxfqlyzQcegySOmkHLqK3XaKrZeu/mFuApBWSDDN8tZIS',1,'2026-05-02 15:49:14','user test api sweeps','21998765432'),(668,'$2b$10$3W6uxD0jMJaim1qvlnhb/euU0q6gNAsB3CnL2X3d4RSKC3eIFSUZ2',0,'2026-05-02 15:49:17','user test api get sweeps','21999876511'),(669,'$2b$10$lOdTg.jZaENaM.Fu1fcs3u2Vv5NTvCAh7IKJWt3/WRbFZKvrFaTjy',1,'2026-05-02 15:49:17','user test api get sweeps','21998765411'),(670,'$2b$10$VKHcpy5GPKNUxBjkqpKvju.wr98E23T3BDHIF/JxWXEHe8TcUGaNe',0,'2026-05-02 15:53:22','Sonia Teste','988646596'),(671,'$2b$10$4Qyf21f7wHByW7mx6IsQnu6d9FwQZIYrGvUvpGCp7yIR4aGtDJlLe',0,'2026-05-12 02:08:11','Teste','+5521985573712'),(672,'$2b$10$Cte.KrMphoR67Zcl60liNu9oHb5nO9n8qA5iAwOxHwn8QDsbRoIKK',0,'2026-05-12 02:26:10','Sonia Teste','+5521955554446'),(673,'$2b$10$5ykha.54x9BknjPDc.FiQ.eEPB9CcyyLHkT0hGq0NoiTySPZ1LfN6',0,'2026-05-12 22:23:45','Teste2','+55966666666'),(674,'$2b$10$SNnodG9wOfLbYTn1fjdV.OT4uXhU.OSvmkJ.QIXqadz9L/yQVImBG',0,'2026-05-12 22:57:12','Teste3','+55977777777'),(675,'$2b$10$NB1p5uM0FvMEUxyld0L4Ju/vnBnLQJPmBRGbIjux1BDYT8tfbtVwS',0,'2026-05-26 00:34:22','Teste novo user','+5521999887766');
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-05-25 23:58:07

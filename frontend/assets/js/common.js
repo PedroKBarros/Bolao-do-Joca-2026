@@ -94,7 +94,7 @@ export async function loadHtmlComponentInHtmlPage(componentName, htmlPageElement
 
 export async function getHtmlOfComponent(componentName){
     componentName = String(componentName).replace(".html", "");
-    const response = await fetch("/frontend/assets/components/" + componentName + ".html");
+    const response = await fetch("/assets/components/" + componentName + ".html");
     const html = await response.text();
     return html;
 }
@@ -272,7 +272,7 @@ function showRequestErrorMessage(title, errorDescription, technicalErrorMessage,
     htmlErrorMsgContent += `
         <br>Caso o problema persista, faça contato no Whatsapp do Joca.`;
     if(technicalErrorMessage!==''){
-        htmlErrorMsgContent += `<br>Nesse caso, informe também os seguintes detalhes técnicos, por favor:<br><br>`;
+        htmlErrorMsgContent += `<br>Nesse caso, se possível, tire um print da tela e envie-o para o Joca.<br><br>Detalhes técnicos:<br>`;
         htmlErrorMsgContent += technicalErrorMessage + `</p>`;
     }
 

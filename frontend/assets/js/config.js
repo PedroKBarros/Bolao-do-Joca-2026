@@ -1,9 +1,9 @@
 export const ENV_CONFIGS = {
     ENV: "dev",
-    BASE_URL_DEV_ENV: "http://127.0.0.1:5500/frontend/pages",
-    BASE_URL_PROD_ENV: "",
+    BASE_URL_DEV_ENV: "http://127.0.0.1:5500/",
+    BASE_URL_PROD_ENV: "http://127.0.0.1:3000/",
     BACKEND_BASE_URL_DEV_ENV: "http://127.0.0.1:3000/api",
-    BACKEND_BASE_URL_PROD_ENV: ""
+    BACKEND_BASE_URL_PROD_ENV: "http://127.0.0.1:3000/api"
 };
 
 export const PAGE_CONFIGS = {

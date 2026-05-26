@@ -84,7 +84,7 @@ async function defineSweepsListUI(){
         sweepsArea.innerHTML=`
                         <div class="row d-flex justify-content-center align-items-center">
                     <div class="col-12 text-center">
-                        <img src="/frontend/assets/img/soccer-player.png" class="app-top-separation img-fluid" alt="Logo" style="width: 141px;height: 141px;opacity: 60%;">
+                        <img src="/assets/img/soccer-player.png" class="app-top-separation img-fluid" alt="Logo" style="width: 141px;height: 141px;opacity: 60%;">
                     </div>
                 </div>
                 <div class="row d-flex justify-content-center align-items-center">
@@ -130,7 +130,7 @@ async function constructSweepsListUI(){
         ///Fill button:
         element = document.getElementsByName("listItemFooterContent1")[i];
         element.appendChild(document.createElement("img"));
-        element.children[0].setAttribute("src", "/frontend/assets/img/btn_sweepstack_answer.png");
+        element.children[0].setAttribute("src", "/assets/img/btn_sweepstack_answer.png");
         element.children[0].setAttribute("class", "app-list-item-icon-btn");
         ///Fill button id:
         element.id = "btnFill_" + sweepsData[i].name;
@@ -140,7 +140,7 @@ async function constructSweepsListUI(){
         ///Download Answers button
         element = document.getElementsByName("listItemFooterContent2")[i];
         element.appendChild(document.createElement("img"));
-        element.children[0].setAttribute("src", "/frontend/assets/img/btn_sweepstack_download_answers.png");
+        element.children[0].setAttribute("src", "/assets/img/btn_sweepstack_download_answers.png");
         element.children[0].setAttribute("class", "app-list-item-icon-btn");
         ///Download Answers button id:
         element.children[0].id = "btnDownload_" + sweepsData[i].name;        
@@ -152,7 +152,7 @@ async function constructSweepsListUI(){
         element.children[0].setAttribute("target", "_blank");  
         element.children[0].setAttribute("rel", "noopener noreferrer");
         element.children[0].appendChild(document.createElement("img"));
-        element.children[0].children[0].setAttribute("src", "/frontend/assets/img/btn_get_wpp_sweepstacke_link.png");
+        element.children[0].children[0].setAttribute("src", "/assets/img/btn_get_wpp_sweepstacke_link.png");
         element.children[0].children[0].setAttribute("class", "app-list-item-icon-btn");
         ///Whatsapp link id:   
         element.children[0].children[0].id = "btnWppLink_" + sweepsData[i].name;      

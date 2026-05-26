@@ -1,4 +1,5 @@
 const meServ = require('../services/meService');
+const envFileHandle = require('../config/env');
 
 async function getLoggedInUserData(req, res) {
   try {

@@ -3,7 +3,8 @@ const meServ = require('../services/meService');
 async function getLoggedInUserData(req, res) {
   try {
     //Obtendo token:
-    const token = req.cookies.auth_token;
+    const cookieName = envFileHandle.isProductionEnv ? "__Host-auth_token" : "auth_token";
+    const token = req.cookies[cookieName];
     //Apesar do middleware verificar se usuário está autenticado, vamos verificar novamente:
     if (!token) {
       return res.status(401).json({ error: 'Usuário não autenticado' });

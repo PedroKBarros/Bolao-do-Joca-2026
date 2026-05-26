@@ -2,7 +2,7 @@ const db_connection = require('../config/db');
 
 
 async function findByWhatsappNumber(whatsappNumber, returnBasicData=false) {
-  const sql = `SELECT * FROM Users WHERE Users.whatsapp_number = ?`;
+  const sql = `SELECT * FROM users WHERE users.whatsapp_number = ?`;
 
   const [rows, fields] = await db_connection.execute(sql, [whatsappNumber]);
   if(rows.length)
@@ -18,7 +18,7 @@ async function findByWhatsappNumber(whatsappNumber, returnBasicData=false) {
 }
 
 async function insertUser(name, whatsappNumber, passwordHash, isAdmin=0){
-  const sql = 'INSERT INTO Users (name, whatsapp_number, password_hash, is_admin) VALUES (?, ?, ?, ?)';
+  const sql = 'INSERT INTO users (name, whatsapp_number, password_hash, is_admin) VALUES (?, ?, ?, ?)';
 
   await db_connection.execute(sql, [name, whatsappNumber, passwordHash, isAdmin]);
 }

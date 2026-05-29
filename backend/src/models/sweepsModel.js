@@ -3,7 +3,7 @@ const db_connection = require('../config/db');
 
 async function getSweepstakesDataFromUserId(userId){
   const sql = `
-  SELECT 
+  select 
       s.name,
       s.keyword_hash,
       s.quota,
@@ -13,20 +13,20 @@ async function getSweepstakesDataFromUserId(userId){
       s.is_closed,
       s.status,
       s.author_user_id,
-      u.name AS author_name,
-      COUNT(su.id) AS total_users
-  FROM SWEEPSTAKE s
-  JOIN USERS u
-      ON u.id = s.author_user_id
-  JOIN SWEEPSTAKE_USERS su 
-      ON su.sweepstake_name = s.name
-  WHERE EXISTS (
-      SELECT 1
-      FROM SWEEPSTAKE_USERS su2
-      WHERE su2.sweepstake_name = s.name
-        AND su2.user_id = ?
+      u.name as author_name,
+      count(su.id) as total_users
+  from sweepstake s
+  join users u
+      on u.id = s.author_user_id
+  join sweepstake_users su 
+      on su.sweepstake_name = s.name
+  where exists (
+      select 1
+      from sweepstake_users su2
+      where su2.sweepstake_name = s.name
+        and su2.user_id = ?
   )
-  GROUP BY 
+  group by 
       s.name,
       s.keyword_hash,
       s.quota,
@@ -49,7 +49,7 @@ async function getSweepstakesDataFromUserId(userId){
 
 async function getAllSweepstakes(){
   const sql = `
-  SELECT 
+  select 
       s.name,
       s.keyword_hash,
       s.quota,
@@ -59,14 +59,14 @@ async function getAllSweepstakes(){
       s.is_closed,
       s.status,
       s.author_user_id,
-      u.name AS author_name,
-      COUNT(su.id) AS total_users
-  FROM SWEEPSTAKE s
-  JOIN USERS u
-      ON u.id = s.author_user_id
-  LEFT JOIN SWEEPSTAKE_USERS su 
-      ON su.sweepstake_name = s.name
-  GROUP BY 
+      u.name as author_name,
+      count(su.id) as total_users
+  from sweepstake s
+  join users u
+      on u.id = s.author_user_id
+  left join sweepstake_users su 
+      on su.sweepstake_name = s.name
+  group by 
       s.name,
       s.keyword_hash,
       s.quota,
@@ -90,11 +90,11 @@ async function getAllSweepstakes(){
 
 async function getAllSweepstakesNames(){
   const sql = `
-  SELECT 
+  select 
       s.name
-  FROM SWEEPSTAKE s
-  GROUP BY s.name
-  ORDER BY s.name ASC;
+  from sweepstake s
+  group by s.name
+  order by s.name asc;
     `;
 
     const [rows] = await db_connection.execute(sql);
@@ -108,7 +108,7 @@ async function getAllSweepstakesNames(){
 
 async function getSweepstakesDataFromName(sweepsName){
   const sql = `
-  SELECT 
+  select 
       s.name,
       s.keyword_hash,
       s.quota,
@@ -118,15 +118,15 @@ async function getSweepstakesDataFromName(sweepsName){
       s.is_closed,
       s.status,
       s.author_user_id,
-      u.name AS author_name,
-      COUNT(su.id) AS total_users
-  FROM SWEEPSTAKE s
-  JOIN USERS u
-      ON u.id = s.author_user_id
-  JOIN SWEEPSTAKE_USERS su 
-      ON su.sweepstake_name = s.name
-  WHERE s.name = ?
-  GROUP BY 
+      u.name as author_name,
+      count(su.id) as total_users
+  from sweepstake s
+  join users u
+      on u.id = s.author_user_id
+  join sweepstake_users su 
+      on su.sweepstake_name = s.name
+  where s.name = ?
+  group by 
       s.name,
       s.keyword_hash,
       s.quota,
@@ -150,7 +150,8 @@ async function getSweepstakesDataFromName(sweepsName){
 
 async function insertSweepstake(name, keywordHash, quota, whatsappGroupLink, startDateParticipation, 
     endDateParticipation,  isClosed, status, authorUserId){
-  const sql = 'INSERT INTO SWEEPSTAKE (name, keyword_hash, quota, group_link, start_date_participation, final_date_participation, is_closed, status, author_user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  const sql = `insert into sweepstake (name, keyword_hash, quota, group_link, start_date_participation, 
+  final_date_participation, is_closed, status, author_user_id) values (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
   await db_connection.execute(sql, [name, keywordHash, quota, whatsappGroupLink, 
     startDateParticipation, endDateParticipation, isClosed, status, authorUserId]);
@@ -160,7 +161,7 @@ async function findSweepstake(sweepsName) {
   //Observação: a collation da coluna "name" é "utf8mb4_0900_ai_ci". 
   // Isso significa que ela ignora acentos e não diferencia por 
   // letras maiúsculas e minúsculas na comparação e ordenação.
-  const sql = `SELECT * FROM SWEEPSTAKE WHERE SWEEPSTAKE.name = ?`;
+  const sql = `select * from sweepstake where sweepstake.name = ?`;
 
   const [rows, fields] = await db_connection.execute(sql, [sweepsName]);
   if(rows.length)

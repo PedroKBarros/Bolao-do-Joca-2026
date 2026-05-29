@@ -8,11 +8,7 @@ async function login(req, res) {
       // Enviando token como cookie para garantir maior segurança no
       // armazenamento dele no lado do client:
       const token = await authService.login(whatsappNumber, password);
-      const cookieName = envFileHandle.isProductionEnv ? "__Host-auth_token" : "auth_token";
-      /*Obs.: usar o prefixo "__Host-" impede a definição por subdomínios e melhora a segurança
-       *contra cookie injection. Só é usado em prod, pois obrigatoriamente a conexão tem que usar 
-       *HTTPS, além de ter que ter path:"/", secure:true e não poder usar o atributo Domain.
-       */
+      const cookieName = envFileHandle.cookieName;
       res.cookie(cookieName, token, {
       httpOnly: true,       // JS não acessa
       secure: envFileHandle.isProductionEnv,

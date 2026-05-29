@@ -3,7 +3,7 @@ const envFileHandle = require('../config/env');
 const jwt = require('jsonwebtoken');
 
 function authMiddleware(req, res, next) {
-  const cookieName = envFileHandle.isProductionEnv ? "__Host-auth_token" : "auth_token";
+  const cookieName = envFileHandle.cookieName;
   const token = req.cookies[cookieName];
   console.log("Cookies recebidos:", req.cookies);
 

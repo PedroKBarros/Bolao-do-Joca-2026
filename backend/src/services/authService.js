@@ -27,7 +27,7 @@ async function login(whatsappNumber, password) {
 }
 
 async function logout(res) {
-  res.clearCookie("auth_token");
+  res.clearCookie(envFileHandle.cookieName);
 }
 
 module.exports = { login, logout };

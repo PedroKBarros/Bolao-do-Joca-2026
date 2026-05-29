@@ -1,9 +1,11 @@
 const sweepsServ = require('../services/sweepsService');
+const envFileHandle = require('../config/env');
 
 async function getSweepstakes(req, res) {
   try {
     //Obtendo token:
-    const token = req.cookies.auth_token;
+    const cookieName = envFileHandle.cookieName;
+    const token = req.cookies[cookieName];
     /*
     * Obtendo os dados dos bolões do usuário (bolões que ele participa, tendo criado ou não)
     * ou de todos os bolões do sistema, caso o usuário seja administrados:
@@ -28,7 +30,8 @@ async function getAllSweepstakesNames(req, res) {
 async function createSweepstake(req, res) {
   try {
     //Obtendo token:
-    const token = req.cookies.auth_token;
+    const cookieName = envFileHandle.cookieName;
+    const token = req.cookies[cookieName];
 
     const { sweepsName, sweepsKeyword, sweepsQuota, sweepsStartDateParticipation, 
       sweepsEndDateParticipation, sweepsWhatsappGroupLink } = req.body;
@@ -45,7 +48,8 @@ async function createSweepstake(req, res) {
 
 async function joinSweepstake(req, res) {
   try {
-    const token = req.cookies.auth_token;
+    const cookieName = envFileHandle.cookieName;
+    const token = req.cookies[cookieName];
     const { sweepsName, sweepsKeyword } = req.body;
 
     await sweepsServ.joinSweepstake(token, sweepsName, sweepsKeyword);
@@ -59,7 +63,8 @@ async function joinSweepstake(req, res) {
 
 async function checkIfUserIsInSweepstake(req, res) {
   try {
-    const token = req.cookies.auth_token;
+    const cookieName = envFileHandle.cookieName;
+    const token = req.cookies[cookieName];
     const { sweepsName } = req.body;
 
     res.status(200).json({ message: await sweepsServ.isUserInSweepstake(token, sweepsName) });

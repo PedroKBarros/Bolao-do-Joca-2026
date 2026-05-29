@@ -4,7 +4,7 @@ const envFileHandle = require('../config/env');
 async function getLoggedInUserData(req, res) {
   try {
     //Obtendo token:
-    const cookieName = envFileHandle.isProductionEnv ? "__Host-auth_token" : "auth_token";
+    const cookieName = envFileHandle.cookieName;
     const token = req.cookies[cookieName];
     //Apesar do middleware verificar se usuário está autenticado, vamos verificar novamente:
     if (!token) {

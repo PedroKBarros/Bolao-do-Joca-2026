@@ -1,5 +1,5 @@
 export const ENV_CONFIGS = {
-    ENV: document.URL === "https://bjcdm.tech/'" ? "prod" : "dev",
+    ENV: document.URL.includes("bjcdm.tech") ? "prod" : "dev",
     //BASE_URL_DEV_ENV: "http://127.0.0.1:5500/",
     FRONTEND_DEV_BASE_URL: "http://127.0.0.1:5500/",
     BACKEND_DEV_BASE_URL: "http://127.0.0.1:3000/api",

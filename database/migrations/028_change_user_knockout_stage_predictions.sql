@@ -1,0 +1,2 @@
+ALTER TABLE USER_KNOCKOUT_STAGE_PREDICTIONS
+DROP FOREIGN KEY user_knockout_stage_predictions_ibfk_1;

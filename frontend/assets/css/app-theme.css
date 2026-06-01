@@ -49,7 +49,12 @@ body{
     top: 0;
     left: 0;
     width: 100%;
-    height: 71px;
+    z-index: 1000;
+}
+
+.app-main-fill-matches {
+    /* Para que o header não sobreescreva elementos do main:*/
+    margin-top: 200px;
 }
 
 .app-logo-header-after-login{
@@ -264,6 +269,10 @@ body{
 
 }
 
+.app-checkbox-field{
+    border: 1px solid #000000;
+}
+
 .app-big-field{
     max-width: 364px;
     width:300px;
@@ -407,7 +416,7 @@ button:hover {
 }
 
 .app-table-small-col{
-    width: 50px;
+    width: 45px;
 }
 
 .app-table-medium-col{
@@ -415,15 +424,11 @@ button:hover {
 }
 
 .app-table-big-col{
-    width: 120px;
-}
-
-.app-group-match-table{
-    width:184px;
+    width: 100px;
 }
  
 .app-group-match-table {
-    max-width: 200px;
+    max-width: 350px;
 
   /* quebra de linha dentro das células */
   overflow-wrap: break-word;

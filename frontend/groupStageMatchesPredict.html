@@ -9,25 +9,28 @@
   </head>
   <body data-page="groupStageMatchesPredict">
     <div class="container app-container">
-        <header>
+        <header class="app-header-after-login">
             <div class="app-blue-bg d-flex align-items-center">
                 <img src="/assets/img/logo_sem_fundo.png" class="img-fluid app-logo-header-after-login" alt="Logo">
                 <p class="app-big-txt app-white-txt app-zero-separation ms-2">BOLÃO DO JOCA 2026</p>
             </div>
 
-            <div class="row d-flex justify-content-center align-items-center">
+            <div class="app-white-bg row d-flex justify-content-center align-items-center">
                 <div class="col-12 text-center">
-                    <button id="save-data" type="button" class="app-btn app-medium-btn app-neutral-btn-color app-small-top-separation app-right-separation">
+                    <button id="save-data" type="button" class="app-btn app-medium-btn app-neutral-btn-color app-small-top-separation app-width-separation">
                         SALVAR
                     </button>
-                    <button id="show-instructions" type="button" class="app-btn app-medium-btn app-neutral-btn-color app-small-top-separation app-left-separation">
+                    <button id="show-instructions" type="button" class="app-btn app-medium-btn app-neutral-btn-color app-small-top-separation app-width-separation">
                         INSTRUÇÕES
+                    </button>
+                    <button id="go-to-knockout-stage" type="button" class="app-btn app-medium-btn app-positive-btn-color app-small-top-separation app-width-separation d-none">
+                        IR PARA MATA-MATA
                     </button>
                 </div>
             </div>
             <div class="app-white-bg row d-flex justify-content-center align-items-center">
                 <div class="col-12 text-center">
-                    <p id="filledMatchesStatus" class="app-big-txt app-blue-txt app-zero-separation">FASE DE GRUPOS</p>
+                    <p id="selectedSweepsName" class="app-big-txt app-blue-txt app-zero-separation">FASE DE GRUPOS</p>
                 </div>
             </div>
             <div class="app-white-bg row d-flex justify-content-center align-items-center">

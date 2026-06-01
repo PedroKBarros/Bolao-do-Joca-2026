@@ -9,36 +9,53 @@ var failedInSomeInitRequest;
 var matchesData;
 var predictData;
 var predictDataPendingToSave = [];
+var totalFilledMatches = 0;
 var groupTablesData = [];
 var teamsDraws = [];
+var manualDrawsSolutions = [];
+var pedingGroupsToTurnNotMoreValidAllManualDrawSolutions = []; //When predict data change and will be saved
 var userData;
 var sweepsName;
 var secundaryStatusHtmlElement = document.getElementById("secundaryStatus");
+var thirdPlacesTablesData = [];
+var thirdPlacesDefinedKnockoutMatches = [];
+var firstStageKnockoutDefinedMatches = [];
 
+const TOTAL_GROUPS = 12;
 const TOTAL_MATCHES_PER_TEAM = 3;
 const TOTAL_MATCHES_PER_GROUP = 6;
 const TOTAL_TEAM_IN_ALL_GROUP_MATCHES = TOTAL_MATCHES_PER_GROUP * 2;
+const TOTAL_MATCHES = TOTAL_MATCHES_PER_GROUP * TOTAL_GROUPS;
 //Obs.: o TOTAL_TEAM_IN_ALL_GROUP_MATCHES indica a qtd de seleções 
 // envolvidas em todos os 6 jogos, se você considerar repetições.
+
+const NOT_DEFINED_PLACE_VALUE = "-";
 
 const ASCII_CHAR_A_DECIMAL_CODE = 65;
 
 const TEAM_RESULT_IN_MATCH_PREDICTION = {winner: 3, draw: 1, losing: 0};
 
 const DRAW_SOLUTION_STATUS = {inProgress: "IN PROGRESS", automaticSolutionFailed: "AUTO SOLUTION FAILED",
-     automaticSolutionWorked: "AUTO SOLUTION WORKED", manualSolutionApplied: "MANUAL SOLUTION APPLIED"};
+     automaticSolutionWorked: "AUTO SOLUTION WORKED", manualSolutionApplied: "MANUAL SOLUTION APPLIED",
+    ignoreByChangeMatchScore: "IGNORE DRAW BY CHANGE MATCH SCORE"};
 
 const GROUP_MATCHES_DRAW_ALERT_TXT = "Desempate Necessário";
 
 export async function init(){
-    getUserDataFromLocalStorage();
-    getSweepsNameFromLocalStorage();
+    defineMainElementMarginTop(); //Necessário para que o header não sobreponha parte dos elementos da main
+    defineResizeEvent();
+    getUserDataFromSessionStorage();
+    getSweepsNameFromSessionStorage();
     await loadModalInHtmlPage();
     await getMatchesOfGroupsStage();
     if(failedInSomeInitRequest){
         return;
     }
     await getSavedPredictData();
+    if(failedInSomeInitRequest){
+        return;
+    }
+    await getManualDrawSolutions(); //from solutions in database
     if(failedInSomeInitRequest){
         return;
     }
@@ -56,7 +73,11 @@ export async function init(){
     createGroupTablesData();
     inicializeTeamNamesInGroupTablesData();
     updateGroupTablesData();
+    updateDrawsUIOfGroups();
     updateHtmlTables();
+    //Atualizando status de total de jogos preenchidos:
+    updateTotalFilledMatchesStatus(predictData.length);
+    defineLoadPageEvents();
 
     if(predictData.length === 0){
         showInstructionMsg();
@@ -64,32 +85,63 @@ export async function init(){
 
 }
 
-function getUserDataFromLocalStorage(){
+function defineMainElementMarginTop() {
+    const header = document.querySelector("header");
+    const main = document.querySelector("main");
+    let mainMarginTop = header.offsetHeight + 10;
+
+    main.style.marginTop = `${mainMarginTop}px`;
+}
+
+function defineResizeEvent(){
+    window.addEventListener("resize", defineMainElementMarginTop);
+}
+
+async function getManualDrawSolutions(){
+    let handleReturn = await handleRequest(() => makeRequest("/draws/solutions/groupStage?sweepsName=" + 
+        sweepsName + '&userId=' + userData.id, "GET"), null, false, ()=>{throw new Error();}, true, msgTitle);
+    /* Obs.: caso ocorra alguma falha, será disparado o erro (passado como parâmetro). 
+    * Isso fará com que a handleRequest vá para o bloco catch, exibindo mensagem com
+     o erro e direcionando o usuário a home page*/
+
+    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+        manualDrawsSolutions = handleReturn.response.body;
+        hideModal();
+        console.log("manualDrawSolutions:");
+        console.log([...manualDrawsSolutions]);
+    }else{
+        failedInSomeInitRequest = true;
+    }
+}
+
+function getUserDataFromSessionStorage(){
     try{
         userData = {
-            "id": localStorage.getItem("userId"),
-            "isAdmin": localStorage.getItem("userIsAdmin"),
-            "name": localStorage.getItem("userName"),
-            "whatsappNumber": localStorage.getItem("userWhatsappNumber")
+            "id": sessionStorage.getItem("userId"),
+            "isAdmin": sessionStorage.getItem("userIsAdmin"),
+            "name": sessionStorage.getItem("userName"),
+            "whatsappNumber": sessionStorage.getItem("userWhatsappNumber")
         }
     }catch(error){
-        showModal(msgTitle, generateHtmlErrorMsgWhileGetDataFromLocalStorage(error.message), true, "OK", goToHomePage, false);
+        showModal(msgTitle, generateHtmlErrorMsgWhileGetDataFromSessionStorage(error.message), true, "OK", goToHomePage, false);
     }
 
 }
 
-function generateHtmlErrorMsgWhileGetDataFromLocalStorage(errorMsg){
+function generateHtmlErrorMsgWhileGetDataFromSessionStorage(errorMsg){
     return `<p>Ocorreu um erro ao tentar obter dados armazenados no navegador. 
     Você será direcionado a página inicial.<br>Caso o problema persista, faça 
     contato no Whatsapp do Joca. Nesse caso, informe também os seguintes detalhes 
     técnicos, por favor:<br><br></p>` + errorMsg;
 }
 
-function getSweepsNameFromLocalStorage(){
+function getSweepsNameFromSessionStorage(){
     try{
-        sweepsName = localStorage.getItem("fillingSweepstake");
+        sweepsName = sessionStorage.getItem("fillingSweepstake");
     }catch(error){
-        showModal(msgTitle, generateHtmlErrorMsgWhileGetDataFromLocalStorage(error.message), true, "OK", goToHomePage, false);
+        showModal(msgTitle, generateHtmlErrorMsgWhileGetDataFromSessionStorage(error.message), true, "OK", goToHomePage, false);
     }
 }
 
@@ -214,18 +266,41 @@ function showSavedPredictDataInInputFields(){
 }
 
 function addSweepsNameInPageHeader(){
-    let filledMatchesStatus = document.getElementById("filledMatchesStatus");
-    filledMatchesStatus.textContent = String(sweepsName).toUpperCase() + " - " + filledMatchesStatus.textContent;
+    let selectedSweepsName = document.getElementById("selectedSweepsName");
+    selectedSweepsName.textContent = String(sweepsName).toUpperCase() + " - " + selectedSweepsName.textContent;
 }
 
 function handleChangeInInputFieldValue(event){
     const inputTriggedEventId = event.currentTarget.id;
     const groupMatchId = Number(String(inputTriggedEventId).split("_")[1]);
+    const groupLetter = getGroupLetterByGroupMatchId(groupMatchId);
     const isTeam1Input = String(inputTriggedEventId).includes("Team1");
     const inputTeam1 = isTeam1Input ? document.getElementById(inputTriggedEventId) : 
     document.getElementById(String(inputTriggedEventId).replace("Team2", "Team1"));
     const inputTeam2 = isTeam1Input ? document.getElementById(String(inputTriggedEventId).replace("Team1", "Team2")) : 
     document.getElementById(inputTriggedEventId);
+
+    //Check if score really change:
+    console.log("RETORNO DA TEAM SCORE REALLY CHANGE: " + teamScoreReallyChange(groupMatchId, inputTeam1.value, inputTeam2.value));
+    if(!teamScoreReallyChange(groupMatchId, inputTeam1.value, inputTeam2.value)){
+        return;
+    }
+
+    //Check if respective group has draw with automatic solution failed, 
+    // because, in this case, it's necessary change draw register status and call 
+    // function to update group places UI, removing manual draw html elements:
+    let groupDrawsCount = 0;
+    for(let i=0;i<teamsDraws.length;i++){
+        if(teamsDraws[i].group === groupLetter && 
+            teamsDraws[i].status === DRAW_SOLUTION_STATUS.automaticSolutionFailed){
+            groupDrawsCount++;
+            teamsDraws[i].status = DRAW_SOLUTION_STATUS.ignoreByChangeMatchScore;
+        }
+    }
+    if(groupDrawsCount > 0){
+        console.log("Partida alterada de grupo com desempate manual");
+        updateDrawsUIOfGroups();
+    }
 
     //Removing all caracteres that is not a 0-9:
     if(isTeam1Input){
@@ -275,6 +350,22 @@ function handleChangeInInputFieldValue(event){
     console.log([...predictDataPendingToSave]);
 }
 
+function teamScoreReallyChange(groupMatchId, scoreTeam1, scoreTeam2){
+   let savedMatchPredictData = predictData.find(predictData => 
+            predictData.group_match_id === groupMatchId);
+                 
+    if(savedMatchPredictData){
+        return String(savedMatchPredictData.score_team_1) !== scoreTeam1 || 
+        String(savedMatchPredictData.score_team_2) !== scoreTeam2;
+    }else{
+        return true; //Because function handleChangeInInputFieldValue needs to register newScore to pending save
+    }
+}
+
+function getGroupLetterByGroupMatchId(groupMatchId){
+    return matchesData.find(m => m.id === groupMatchId).group_letter_1;
+}
+
 function normalizeScoreTeamInput(htmlInputElement){
     //Remove all caracteres that is not a 0-9:
     htmlInputElement.value = htmlInputElement.value.replace(/\D/g, '');
@@ -283,6 +374,7 @@ function normalizeScoreTeamInput(htmlInputElement){
 function defineEventsInHeaderButtons(){
     document.getElementById("save-data").addEventListener("click", saveData);
     document.getElementById("show-instructions").addEventListener("click", showInstructionMsg);
+    document.getElementById("go-to-knockout-stage").addEventListener("click", prepareKnockoutStage);
 }
 
 async function saveData() {
@@ -299,28 +391,140 @@ async function saveData() {
 
     if(predictDataPendingToSave.length === 0){
         //Atualizando status para informar que todos os dados estão salvos:
-        updateSaveStatus(true);
+        updateSaveStatus("", true);
+        defineMainElementMarginTop();
         return;
     }
 
+    //Verificando se há soluções manuais relacionadas aos grupos que terão dados de predições salvos:
+    if(isThereGroupsThatWillBeNecessaryTurnNotMoreValidAllManualDrawSolutions()){
+        showModal(msgTitle, 
+            `<p>As alterações que serão salvas envolvem 1 ou mais grupos em que parte das seleções 
+            empatadas tiveram que ser desempatas por você. Esses desempates 
+            serão desfeitos caso você salve as alterações. Deseja salvá-las?</p>`, true, "SALVAR", async () => await makeSaveDataRequest(true), 
+            true, "CANCELAR");
+    }else{
+        await makeSaveDataRequest();
+    }
+}
+
+async function makeSaveDataRequest(isNecessaryReloadPage=false){
     //Realizando o save:
     let handleReturn = await handleRequest(() => makeRequest("/predictions/groupStage/save", 
-        "POST", JSON.stringify({"userIdInSweepestake": localStorage.getItem("userIdInSweepestake"), "predictDataToSave": predictDataPendingToSave}), true), null, false, 
+        "POST", JSON.stringify({"userIdInSweepestake": sessionStorage.getItem("userIdInSweepestake"), "predictDataToSave": predictDataPendingToSave}), true), null, false, 
+    ()=>{throw new Error();}, true, msgTitle);
+
+    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+        await runOtherFunctionsAfterSaveData(isNecessaryReloadPage);   
+    }
+}
+
+async function runOtherFunctionsAfterSaveData(isNecessaryReloadPage=false){
+    hideModal();
+    //Atualizando data e hora de realização do save:
+    updateSaveStatus();
+    defineMainElementMarginTop();
+    //Tratando possíveis soluções manuais relacionadas aos grupos que tiveram dados de predições salvos:
+    await handleManualDrawSolutionsAfterSaveNewPredictData();
+    //Definindo se botão para ir pra fase mata-mata deve ser exibido ou ocultado:
+    handleGotoKnockoutStageButton();
+    //Limpando array de dados que estavam pendentes de serem salvos:
+    clearPredictDataPendingToSave();
+    //Atualizando as tabelas:
+    clearTeamDraw();
+    if(isNecessaryReloadPage){
+        //Recarregando página para que função init() seja executada:
+        location.reload();
+    }else{
+        updateGroupTablesData();
+        updateDrawsUIOfGroups();
+        updateHtmlTables();
+    }
+
+}
+
+function updateTotalFilledMatchesStatus(addValueToTotal){
+    totalFilledMatches+=addValueToTotal;
+    document.getElementById("filledMatchesStatus").textContent = totalFilledMatches + " de 72 jogos preenchidos";
+    handleGotoKnockoutStageButton();
+}   
+
+function handleGotoKnockoutStageButton(){
+    if(canShowBtnGoTOKnockoutStage()){
+        showGoToKnockoutStageButton();
+    }else{
+        hideGoToKnockoutStageButton();
+    }
+}
+
+function showGoToKnockoutStageButton(){
+    let btnGoKnockoutStage = document.getElementById("go-to-knockout-stage");
+    let btnInstructions = document.getElementById("show-instructions");
+
+    btnInstructions.classList.add("d-none");
+    btnGoKnockoutStage.classList.remove("d-none");
+}
+
+function hideGoToKnockoutStageButton(){
+    let btnGoKnockoutStage = document.getElementById("go-to-knockout-stage");
+    let btnInstructions = document.getElementById("show-instructions");
+
+    btnInstructions.classList.remove("d-none");
+    btnGoKnockoutStage.classList.add("d-none");
+}
+
+function isThereGroupsThatWillBeNecessaryTurnNotMoreValidAllManualDrawSolutions(){
+    let currentGroupLetter;
+    for(let i=0;i<predictDataPendingToSave.length;i++){
+        currentGroupLetter = getGroupLetterByGroupMatchId(predictDataPendingToSave[i].group_match_id);
+        if(manualDrawsSolutions.some(m => m.group_letter === currentGroupLetter)){
+            return true;
+        }
+    }
+    return false;    
+}
+
+function defineAllGroupsThatWillBeNecessaryTurnNotMoreValidAllManualDrawSolutions(){
+    //Verificando se há soluções manuais relacionadas aos grupos que terão dados de predições salvos e,
+    //  em caso positivo, adicionando a letra do grupo em array global:
+    let currentGroupLetter;
+    for(let i=0;i<predictDataPendingToSave.length;i++){
+        currentGroupLetter = getGroupLetterByGroupMatchId(predictDataPendingToSave[i].group_match_id);
+        if(manualDrawsSolutions.some(m => m.group_letter === currentGroupLetter)){
+            if(!pedingGroupsToTurnNotMoreValidAllManualDrawSolutions.some(g => g === currentGroupLetter)){
+                pedingGroupsToTurnNotMoreValidAllManualDrawSolutions.push(currentGroupLetter);
+            }
+        }
+    }
+}
+
+async function handleManualDrawSolutionsAfterSaveNewPredictData(){
+    defineAllGroupsThatWillBeNecessaryTurnNotMoreValidAllManualDrawSolutions();
+    console.log("ENTROU NA handleManualDrawSolutionsAfterSaveNewPredictData");
+    if(pedingGroupsToTurnNotMoreValidAllManualDrawSolutions.length === 0){
+        console.log("ENTROU NO IF DA handleManualDrawSolutionsAfterSaveNewPredictData");
+        return;
+    }
+    //Realizando requisição para deletar TODAS as soloções de desempate manual de cada grupo
+    //  que teve 1 ou mais predições alteradas e atulizadas no banco:
+    let handleReturn = await handleRequest(() => makeRequest("/draws/solutions/groupStage/setToNotMoreValid", 
+        "POST", JSON.stringify({"userIdInSweepestake": sessionStorage.getItem("userIdInSweepestake"), 
+            "groupsLetter": pedingGroupsToTurnNotMoreValidAllManualDrawSolutions}), true), null, false, 
     ()=>{throw new Error();}, true, msgTitle);
 
     if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
         handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
         handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
         hideModal();
-        //Atualizando data e hora de realização do save:
-        updateSaveStatus();
-        //Limpando array de dados que estavam pendentes de serem salvos:
-        clearPredictDataPendingToSave();
-        //Atualizando as tabelas:
-        clearTeamDraw();
-        updateGroupTablesData();
-        updateHtmlTables();
+        clearGroupsPendingToTurnNotMoreValidAllManualDrawSolutions();
     }
+
+}
+
+function clearGroupsPendingToTurnNotMoreValidAllManualDrawSolutions(){
+    pedingGroupsToTurnNotMoreValidAllManualDrawSolutions.length = 0;
 }
 
 function clearPredictDataPendingToSave(){
@@ -331,13 +535,15 @@ function clearTeamDraw(){
     teamsDraws.length = 0;
 }
 
-function updateSaveStatus(onlyInformThatDontHavePendingDataToSave=false){
+function updateSaveStatus(specificStatus="", onlyInformThatDontHavePendingDataToSave=false){
     if(!onlyInformThatDontHavePendingDataToSave){
-        secundaryStatusHtmlElement.textContent = "Dados salvos em " + new Date().toLocaleString();
+        if(specificStatus === ""){
+            secundaryStatusHtmlElement.textContent = "Dados salvos em " + new Date().toLocaleString();
+        }else{
+            secundaryStatusHtmlElement.textContent = specificStatus;
+        }
     }else{
-
         secundaryStatusHtmlElement.textContent = "Todos os dados estão salvos. :)";
-
     }
 }
 
@@ -425,13 +631,13 @@ function createGroupTablesData(){
         currentGroupAsciiLetterDecCode = ASCII_CHAR_A_DECIMAL_CODE + i;
         groupTablesData.push([
             {"group": String.fromCharCode(currentGroupAsciiLetterDecCode), 
-                "place": "-", "team": "", "pt": 0, "gs": 0, "gr": 0, "gd": 0, "totalFilledMatches": 0},
+                "place": NOT_DEFINED_PLACE_VALUE, "team": "", "pt": 0, "gs": 0, "gr": 0, "gd": 0, "totalFilledMatches": 0, "isPlaceDefinedByUser": false },
             {"group": String.fromCharCode(currentGroupAsciiLetterDecCode), 
-                "place": "-", "team": "", "pt": 0, "gs": 0, "gr": 0, "gd": 0, "totalFilledMatches": 0},
+                "place": NOT_DEFINED_PLACE_VALUE, "team": "", "pt": 0, "gs": 0, "gr": 0, "gd": 0, "totalFilledMatches": 0, "isPlaceDefinedByUser": false},
             {"group": String.fromCharCode(currentGroupAsciiLetterDecCode), 
-                "place": "-", "team": "", "pt": 0, "gs": 0, "gr": 0, "gd": 0, "totalFilledMatches": 0},
+                "place": NOT_DEFINED_PLACE_VALUE, "team": "", "pt": 0, "gs": 0, "gr": 0, "gd": 0, "totalFilledMatches": 0, "isPlaceDefinedByUser": false},
             {"group": String.fromCharCode(currentGroupAsciiLetterDecCode), 
-                "place": "-", "team": "", "pt": 0, "gs": 0, "gr": 0, "gd": 0, "totalFilledMatches": 0}
+                "place": NOT_DEFINED_PLACE_VALUE, "team": "", "pt": 0, "gs": 0, "gr": 0, "gd": 0, "totalFilledMatches": 0, "isPlaceDefinedByUser": false}
         ]);
     }
 }
@@ -457,7 +663,7 @@ function updateHtmlTables(){
         currentTableBody = groupTables[i].getElementsByTagName("tbody")[0];
         for(let w = 0;w < 4;w++){
             currentTableBody.getElementsByTagName("tr")[w].getElementsByTagName("th")[0].textContent = 
-            groupTablesData[i][w].place === "-" ? "-" : groupTablesData[i][w].place + "º";
+            groupTablesData[i][w].place === NOT_DEFINED_PLACE_VALUE ? NOT_DEFINED_PLACE_VALUE : groupTablesData[i][w].place + "º";
             currentTableBody.getElementsByTagName("tr")[w].getElementsByTagName("td")[0].textContent = groupTablesData[i][w].team;
             currentTableBody.getElementsByTagName("tr")[w].getElementsByTagName("td")[1].textContent = groupTablesData[i][w].pt;
             currentTableBody.getElementsByTagName("tr")[w].getElementsByTagName("td")[2].textContent = groupTablesData[i][w].gs;
@@ -523,12 +729,11 @@ function updateGroupTablesData(){
     }
 
     //Verificando se ocorreu empate que precisa
-    // de tratamento manual, avisando ao usuário e 
-    // exibindo indicativo ao lado do nome dos grupos:
+    // de tratamento manual e avisando ao usuário:
     if(teamsDraws.some(t => t.status === DRAW_SOLUTION_STATUS.automaticSolutionFailed)){
         showManualDrawPendingAlertMsg();
-        updateUIOfGroupsWithManualDrawPending();
     }
+
 }
 
 function showManualDrawPendingAlertMsg(){
@@ -539,20 +744,275 @@ function showManualDrawPendingAlertMsg(){
         clique no botão de desempate exibido abaixo da tabela.</p>`, true, "OK", null, false);
 }
 
-function updateUIOfGroupsWithManualDrawPending(){
-    let htmlGroupElementAlertIndex;
+function updateDrawsUIOfGroups(){
+    let htmlGroupElementsIndex;
     let htmlGroupElementAlert;
-    console.log(teamsDraws);
-    for(let i=0;i<teamsDraws.length;i++){
-        if(teamsDraws[i].status === DRAW_SOLUTION_STATUS.automaticSolutionFailed){
-            console.log(String(teamsDraws[i].group).charCodeAt(0));
-            htmlGroupElementAlertIndex = String(teamsDraws[i].group).charCodeAt(0) - ASCII_CHAR_A_DECIMAL_CODE;
-            htmlGroupElementAlert = document.getElementsByName("groupMatchesAlert")[htmlGroupElementAlertIndex];
+    let htmlGroupElementSolveDrawBtn1;
+    let htmlGroupElementSolveDrawBtn2;
+    let currentGroupLetter;
+    let currentGroupDraws;
+
+    for(let i=0;i<12;i++){
+        currentGroupLetter = String.fromCharCode(i + ASCII_CHAR_A_DECIMAL_CODE);
+        currentGroupDraws = teamsDraws.filter(t => t.group === currentGroupLetter && 
+            t.status === DRAW_SOLUTION_STATUS.automaticSolutionFailed);
+        
+        htmlGroupElementsIndex = i;
+        htmlGroupElementAlert = document.getElementsByName("groupMatchesAlert")[htmlGroupElementsIndex];
+        htmlGroupElementSolveDrawBtn1 = document.getElementsByName("drawBtn1")[htmlGroupElementsIndex];
+        htmlGroupElementSolveDrawBtn2 = document.getElementsByName("drawBtn2")[htmlGroupElementsIndex];
+        
+        console.log("ABC:");
+        console.log(currentGroupDraws);
+        if(currentGroupDraws.length === 0){
+            //Hidde draw alert and buttons:
+            htmlGroupElementAlert.classList.add("d-none");
+            htmlGroupElementSolveDrawBtn1.classList.add("d-none");
+            htmlGroupElementSolveDrawBtn2.classList.add("d-none");            
+        }else{
+            //Show draw alert:
             htmlGroupElementAlert.classList.remove("d-none"); //Turn alert visible
             htmlGroupElementAlert.textContent = GROUP_MATCHES_DRAW_ALERT_TXT;
+
+            //Show buttons to solve draw(s):
+            //Define btn id with group letter and place:
+            htmlGroupElementSolveDrawBtn1.id = "btnSolveDraw-" + currentGroupLetter + "-" + currentGroupDraws[0].place;
+            //Define btn click event:
+            htmlGroupElementSolveDrawBtn1.addEventListener("click", handleManualDrawSolution);
+            htmlGroupElementSolveDrawBtn1.classList.remove("d-none"); //Turn button visible
+            htmlGroupElementSolveDrawBtn1.textContent = "DESEMPATAR " + currentGroupDraws[0].place + "º";
+            if(currentGroupDraws.length === 2){
+                //Define btn id with group letter and place:
+                htmlGroupElementSolveDrawBtn2.id = "btnSolveDraw-" + currentGroupLetter + "-" + currentGroupDraws[1].place;
+                //Define btn click event:
+                htmlGroupElementSolveDrawBtn2.addEventListener("click", handleManualDrawSolution);
+                htmlGroupElementSolveDrawBtn2.classList.remove("d-none"); //Turn button visible
+                htmlGroupElementSolveDrawBtn2.textContent = "DESEMPATAR " + currentGroupDraws[1].place + "º";            
+            }
         }
+
     }
 }
+
+async function handleManualDrawSolution(event){
+    //Get button id:
+    const btnManualDrawSolutionId = event.currentTarget.id;
+    const groupLetter = String(btnManualDrawSolutionId).split("-")[1];
+    const drawPlace = Number(String(btnManualDrawSolutionId).split("-")[2]);
+    const modalTitle = "Grupo " + groupLetter + " - Desempate do " + drawPlace + "º Lugar";
+    let groupTableData = getGroupTableDataByLetter(groupLetter);
+    let groupDrawRowsTableData = groupTableData.filter(t => t.place === drawPlace);
+    let totalOfTeamsDrawed = totalOfDrawInGroupTableDataByPlace(groupTableData, drawPlace);
+    let strPlacesToDefine = "";
+    let lastPlaceToDefine = drawPlace + totalOfTeamsDrawed - 1;
+
+    for(let place = drawPlace;place <= lastPlaceToDefine;place++){
+        strPlacesToDefine += place + "º";
+        if(place < lastPlaceToDefine){
+            if(place + 1 < lastPlaceToDefine){
+                strPlacesToDefine += ", ";    
+            }else{
+                strPlacesToDefine += " e ";
+            }
+        }
+    }
+
+    showModal(modalTitle, await generateHtmlContentModalOfManualDrawSolution(drawPlace, 
+        lastPlaceToDefine, strPlacesToDefine), true, "CONFIRMAR", () => {
+            saveManualDrawSolution(groupLetter, drawPlace, lastPlaceToDefine)
+        }, true, "CANCELAR", null, true);
+
+    //Config dropdowns to show selected option and to have only places to define:
+    configDropdownsOfManualDrawSolutionModal(groupDrawRowsTableData, drawPlace, lastPlaceToDefine);
+
+    //Config Team Names:
+    configTeamNamesOfManualDrawSolutionModal(groupDrawRowsTableData);
+
+}
+
+async function saveManualDrawSolution(groupLetter, firstPlaceToDefine, lastPlaceToDefine){
+
+    let manualDrawSolutions;
+    let dropdowns = document.getElementsByName("drawDropdown");
+    let teamNames = document.getElementsByName("teamName");
+
+    //Check if all dropdowns was filled and if all place is unique:
+    let isValidManualDrawSolution = checkManualDrawSolutionPlaceDefinied(dropdowns);
+    
+    if(!isValidManualDrawSolution){
+        return;
+    }
+
+    manualDrawSolutions = [];
+    for(let i=0;i<dropdowns.length;i++){
+        manualDrawSolutions.push(
+            {
+            "place": dropdowns[i].innerText.replace("º", ""), 
+            "group_letter": groupLetter, 
+            "team_name": teamNames[i].innerText.replace(":", "")
+            });
+    }
+
+    //Salvando Desempate 
+    let handleReturn = await handleRequest(() => makeRequest("/draws/solutions/groupStage/save", 
+        "POST", JSON.stringify(
+            {
+                "userIdInSweepestake": sessionStorage.getItem("userIdInSweepestake"), 
+                "manualDrawSolutions": manualDrawSolutions
+            }), true), null, false, ()=>{throw new Error();}, true, msgTitle);
+
+    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+    handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+    handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+        hideModal();
+        changeTeamDrawStatusToManualSolutionApplied(groupLetter, firstPlaceToDefine);
+        //Recarregando página para que função init() seja executada, atualizando UI e 
+        // obtendo soluções de desempate salvas no banco:
+        location.reload();
+        console.log(teamsDraws);
+    }
+
+}
+
+function defineLoadPageEvents(){
+    addEventListener("beforeunload", () => {
+        sessionStorage.setItem("saveStatusBeforeLoadPage", getSaveStatus())
+        sessionStorage.setItem('yScrollBeforeReLoadPage', window.scrollY);
+    })
+    addEventListener("load", () => {
+        const yScroll = sessionStorage.getItem('yScrollBeforeReLoadPage');
+        const saveStatus = sessionStorage.getItem('saveStatusBeforeLoadPage');
+        if (yScroll) {
+            window.scrollTo(0, Number(yScroll));
+        }
+        if (saveStatus) {
+            updateSaveStatus(saveStatus, false);
+        }
+    });
+}
+
+function getSaveStatus(){
+    return document.getElementById("secundaryStatus").textContent;
+}
+
+function checkManualDrawSolutionPlaceDefinied(dropdowns){
+    let warningMsg = document.getElementById("warning-msg");
+
+    //Check if all places were defined:
+    for(let i=0;i<dropdowns.length;i++){
+        if(dropdowns[i].innerText === ""){
+            warningMsg.textContent = "Uma ou mais lugares não foram definidos.";
+            warningMsg.classList.remove("d-none");//Show warningMsg element
+            return false;
+        }
+    }
+
+    //Check if all defined places are unique:
+    let currentPlace;
+    let currentPlaceCount;
+    for(let i=0;i<dropdowns.length;i++){
+        currentPlace = dropdowns[i].innerText;
+        currentPlaceCount=0;
+        for(let j=0;j<dropdowns.length;j++){
+            if(currentPlace === dropdowns[j].innerText){
+                currentPlaceCount++;
+                if(currentPlaceCount > 1){
+                    warningMsg.textContent = "Uma ou mais lugares estão repetidos.";
+                    warningMsg.classList.remove("d-none");//Show warningMsg element
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+function changeTeamDrawStatusToManualSolutionApplied(groupLetter, drawPlace){
+    teamsDraws.find(d => d.group === groupLetter && d.place === drawPlace).status = DRAW_SOLUTION_STATUS.manualSolutionApplied;
+    
+}
+
+async function generateHtmlContentModalOfManualDrawSolution(firstPlaceToDefine, lastPlaceToDefine, strPlacesToDefine){
+    const drawTeamSolveHtml = await getHtmlOfComponent("drawTeamSolveInGroupStage");
+    let currentDrawTeamSolveHtml;
+    let currentDropdownId;
+    let currentDropDownListOptId;
+    let modalHtmlContent = `
+
+    <!-- A div container abaixo serve apenas para que as labels fiquem alinhadas 
+        a esquerda, não sendo necessário em todas as páginas.
+        Obs.: ela só cumprirá esse objetivo se os elementos de maior 
+        largura da página forem os campos. -->
+    <div class="container app-restrict-container mx-auto">
+        <div class="row d-flex justify-content-center align-items-center">
+            <div class="col-12 text-start">
+                <p>Defina quais das seleções abaixo deverão estar nos `+ strPlacesToDefine + ` lugares:</p>
+            </div>
+        </div>
+    `;
+    let totalPlacesToDefine = lastPlaceToDefine - firstPlaceToDefine + 1;
+
+    console.log(strPlacesToDefine);
+    for(let i=0;i<totalPlacesToDefine;i++){
+        currentDrawTeamSolveHtml = drawTeamSolveHtml;
+        currentDropdownId = "dropdown-" + (i+1);
+        currentDrawTeamSolveHtml = currentDrawTeamSolveHtml.replace("dropdown1", currentDropdownId);
+        currentDropDownListOptId = "dropdown-" + (i+1) + "-list-options";
+        currentDrawTeamSolveHtml = currentDrawTeamSolveHtml.replace("dropdown1-list-options", currentDropDownListOptId);
+        modalHtmlContent += currentDrawTeamSolveHtml;
+    }
+
+    modalHtmlContent += `
+    <div class="row d-flex justify-content-center align-items-center">
+        <div class="col-12 text-start">
+            <p id="warning-msg" class="app-alert-txt-block app-top-separation d-none" style="width: 300px;"></p>
+        </div>
+    </div>`;
+
+    modalHtmlContent+="</div>";
+
+    return modalHtmlContent;
+
+}
+
+function configDropdownsOfManualDrawSolutionModal(groupDrawRowsTableData, firstPlaceToDefine, lastPlaceToDefine){
+    let dropdowns = document.getElementsByName("drawDropdown");
+    let strDropdownHtmlOption = 
+    `
+    <li>
+        <p class="listDropdownFilterOption app-small-txt dropdown-item">XXXº</p>
+    </li>
+    `;
+    let dropdownsHtmlOptions = "";
+
+    for(let place=firstPlaceToDefine;place <= lastPlaceToDefine;place++){
+        dropdownsHtmlOptions += strDropdownHtmlOption.replace("XXX", place);
+    }    
+
+    for(let i =0;i<dropdowns.length;i++){
+        dropdowns[i].parentElement.children[1].insertAdjacentHTML("beforeend", dropdownsHtmlOptions);
+        addEventsToUpdateDropdownSelectedItem(dropdowns[i].id, dropdowns[i].parentElement.getElementsByTagName("ul")[0].id);
+    }
+}
+
+function configTeamNamesOfManualDrawSolutionModal(groupDrawRowsTableData){
+    let teamNamesHtmlElements = document.getElementsByName("teamName");
+    console.log(groupDrawRowsTableData);
+    for(let i=0;i<groupDrawRowsTableData.length;i++){
+        teamNamesHtmlElements[i].textContent = groupDrawRowsTableData[i].team + ":";
+    }
+}
+
+function getGroupTableDataByLetter(groupLetter){
+    for(let i =0;i<groupTablesData.length;i++){
+        if(groupTablesData[i][0].group === groupLetter){
+            return groupTablesData[i];
+        }
+    }
+
+    return null;
+}
+
 
 function handleTeamGroupsPlaces(groupTableDataIndex){
     //Criteria:
@@ -563,27 +1023,83 @@ function handleTeamGroupsPlaces(groupTableDataIndex){
     //5º) User choice
 
     let groupTableData = groupTablesData[groupTableDataIndex];
+    let firstPlaceToDefine;
     console.log("Grupo com todas partidas preenchidas: " + groupTableData[0].group);
+    //Atribuindo possíveis soluções manuais de empates:
+    groupTablesData[groupTableDataIndex] = assignManualDrawsSolutionsInGroupPlaces(groupTableData);
+    //Obtendo qual a primeira colocação que precisa de definição, já que o usuário pode ter desempatado colocações:
+    firstPlaceToDefine = getFirstPlaceToDefine(groupTableData);
+    console.log("FirstPlaceToDefine do Grupo " + groupTableData[0].group + ": " + firstPlaceToDefine);
+    if(firstPlaceToDefine === -1){
+        //Nesse caso, usuário desempatou todas as 4 colocações, não sendo necessário defini-las.
+        groupTablesData[groupTableDataIndex] = sortTeamGroupByColumn(groupTableData, [{attribute:"place", order:"asc"}]);
+        return;
+    }
     //Definindo colocações inicialmente apenas pela pontuação:
-    groupTablesData[groupTableDataIndex] = defineTeamGroupsPlaces(groupTableData);
+    groupTablesData[groupTableDataIndex] = defineTeamGroupsPlaces(groupTableData, "pt", firstPlaceToDefine);
     //Tratando possíveis empates:
     checkPossibleDraws(groupTableDataIndex);
 }
 
-function defineTeamGroupsPlaces(groupTableDataOrDrawTable, attributeReference="pt", firstPlace=1){
+function getFirstPlaceToDefine(groupTableData){
+    let placeDefined;
+    for(let place=1;place<5;place++){
+        placeDefined=false;
+        for(let i=0;i<groupTableData.length;i++){
+            if(groupTableData[i].isPlaceDefinedByUser){
+                if(groupTableData[i].place === place){
+                    placeDefined = true;
+                }
+            }
+        }
+        if(!placeDefined){
+            return place;
+        }
+    }
+
+    return -1;
+}
+
+function assignManualDrawsSolutionsInGroupPlaces(groupTableData){
+
+    let groupLetter = groupTableData[0].group;
+    let currentManualDrawSolution;
+    for(let i=0;i<groupTableData.length;i++){
+        //Check if there is a manual draw solution for this team:
+        currentManualDrawSolution = getManualDrawSolution(groupLetter, groupTableData[i].team);
+        if(currentManualDrawSolution !== null){
+            console.log("ATRIBUIDA SOLUCAO MANUAL PARA COLOCACAO: " + currentManualDrawSolution.place + " DO GRUPO " + groupTableData[0].group);
+            groupTableData[i].place = currentManualDrawSolution.place;
+            groupTableData[i].isPlaceDefinedByUser = true;
+        }
+    }
+
+    return groupTableData;
+}
+
+function defineTeamGroupsPlaces(groupTableDataOrDrawTable, attributeReference="pt", firstPlace=1, isGroupTableData=true){
 
     groupTableDataOrDrawTable = sortTeamGroupByColumn(groupTableDataOrDrawTable, [{attribute:attributeReference, order:"desc"}]);
 
     let lastTeamPlace;
     let attributeRefValueOfLastTeam;
+    let totalOfLastTeamPlaceDefinedByUser = 0;
     for(let i =0;i<groupTableDataOrDrawTable.length;i++){
+        //Check if team there isn't place, because it can has manual draw solution:
+        if(isGroupTableData){
+            if(groupTableDataOrDrawTable[i].isPlaceDefinedByUser){
+                totalOfLastTeamPlaceDefinedByUser++;
+                continue;
+            }
+        }
+
         if(i===0){
             groupTableDataOrDrawTable[i].place = i + firstPlace;
         }else{
             if(attributeRefValueOfLastTeam === groupTableDataOrDrawTable[i][attributeReference]){
                 groupTableDataOrDrawTable[i].place = lastTeamPlace;                
             }else{
-                groupTableDataOrDrawTable[i].place = i + firstPlace;
+                groupTableDataOrDrawTable[i].place = i + firstPlace - totalOfLastTeamPlaceDefinedByUser;
             }
         }
         lastTeamPlace = groupTableDataOrDrawTable[i].place;
@@ -593,6 +1109,16 @@ function defineTeamGroupsPlaces(groupTableDataOrDrawTable, attributeReference="p
     console.log([...groupTableDataOrDrawTable]);
 
     return groupTableDataOrDrawTable;
+}
+
+function getManualDrawSolution(groupLetter, teamName){
+    for(let i=0;i<manualDrawsSolutions.length;i++){
+        if(manualDrawsSolutions[i].group_letter === groupLetter && 
+            manualDrawsSolutions[i].team_name === teamName){
+            return manualDrawsSolutions[i];
+        }
+    }
+    return null;
 }
 
 function checkPossibleDraws(groupTableDataIndex){
@@ -618,6 +1144,7 @@ function checkPossibleDraws(groupTableDataIndex){
 function handleDraws(groupTableDataIndex, place, teams){
 
     let groupTableData = groupTablesData[groupTableDataIndex];
+    let groupLetter = groupTableData[0].group;
 
     //Registering draw:
     /*
@@ -645,7 +1172,7 @@ function handleDraws(groupTableDataIndex, place, teams){
     for(let i =0;i<teams.length;i++){
         teamGroupDataIndex = groupTableData.findIndex(g => g.team === teams[i]);
         console.log("aaa: " +place);
-        drawTable.push({"place": place, "team": teams[i], 
+        drawTable.push({"group": groupLetter, "place": place, "team": teams[i], 
             "pt": getTotalTeamPtsBetweenSpecificTeams(teams[i], teams),
             "gd": groupTableData[teamGroupDataIndex].gd,
             "gs": groupTableData[teamGroupDataIndex].gs});
@@ -654,7 +1181,7 @@ function handleDraws(groupTableDataIndex, place, teams){
     console.log("Draw Table Depois do Lopp:");
     console.log([...drawTable]);
     //Define places by total of points between draw teams and check if draw persist:
-    drawTable = defineTeamGroupsPlaces(drawTable, "pt", place);
+    drawTable = defineTeamGroupsPlaces(drawTable, "pt", place, false);
     console.log([...drawTable]);
     totalDrawTeamsAfterDirectMatchesCriteriaApplied = totalOfDrawInGroupTableDataByPlace(drawTable, place);
     if(totalDrawTeamsAfterDirectMatchesCriteriaApplied === 0){
@@ -665,7 +1192,7 @@ function handleDraws(groupTableDataIndex, place, teams){
     }   
 
     //Define places by gols difference between draw teams and check if draw persist:
-    drawTable = defineTeamGroupsPlaces(drawTable, "gd", place);
+    drawTable = defineTeamGroupsPlaces(drawTable, "gd", place, false);
     totalDrawTeamsAfterGoalsDiffCriteriaApplied = totalOfDrawInGroupTableDataByPlace(drawTable, place);          
     if(totalDrawTeamsAfterGoalsDiffCriteriaApplied === 0){
         console.log("Empate resolvido por saldo gols");
@@ -675,7 +1202,7 @@ function handleDraws(groupTableDataIndex, place, teams){
     }
    
     //Define places by gols scored between draw teams and check if draw persist:
-    drawTable = defineTeamGroupsPlaces(drawTable, "gs", place);
+    drawTable = defineTeamGroupsPlaces(drawTable, "gs", place, false);
     totalDrawTeamsAfterGoalsScoredCriteriaApplied = totalOfDrawInGroupTableDataByPlace(drawTable, place);
     if(totalDrawTeamsAfterGoalsScoredCriteriaApplied === 0){
         console.log("Empate resolvido por gols pró");
@@ -691,17 +1218,17 @@ function handleDraws(groupTableDataIndex, place, teams){
 
     //Check if some automatic solution try reduce total of draw teams:
     if(totalDrawTeamsAfterDirectMatchesCriteriaApplied < teams.length){
-        drawTable = defineTeamGroupsPlaces(drawTable, "pt", place);
+        drawTable = defineTeamGroupsPlaces(drawTable, "pt", place, false);
         applyAutomaticDrawSolution(groupTableDataIndex, drawTable);
         console.log("Empate reduzido por direct matches");
     }else{
         if(totalDrawTeamsAfterGoalsDiffCriteriaApplied < teams.length){
 
-            drawTable = defineTeamGroupsPlaces(drawTable, "gd", place);
+            drawTable = defineTeamGroupsPlaces(drawTable, "gd", place, false);
             applyAutomaticDrawSolution(groupTableDataIndex, drawTable);
             console.log("Empate reduzido por gd");            
         }else{
-            drawTable = defineTeamGroupsPlaces(drawTable, "gs", place);
+            drawTable = defineTeamGroupsPlaces(drawTable, "gs", place, false);
             applyAutomaticDrawSolution(groupTableDataIndex, drawTable);
             console.log("Empate reduzido por gs");              
         }
@@ -889,4 +1416,425 @@ function matchOfTeamNumber(matchId, teamName){
         return 2;
     }
     return -1;
+}
+
+function canShowBtnGoTOKnockoutStage(){
+    //Check if doesn't exist automatic filed solution team draws:
+    let isThereTeamsDrawNotResolved = teamsDraws.some(d => d.status === DRAW_SOLUTION_STATUS.automaticSolutionFailed);
+    //Check if doesn't exist predict data pending to save:
+    let isTherePredictDataPendingToSave = predictDataPendingToSave.length > 0;
+
+    return totalFilledMatches === TOTAL_MATCHES && !isThereTeamsDrawNotResolved && !isTherePredictDataPendingToSave;
+}
+
+
+function prepareKnockoutStage(){
+    if(thirdPlacesTablesData.length === 0){
+        //Create tables of third places that is possible to go to knockout stage:
+        createThirdPlacesTablesData();
+    }
+    
+    let placesResult;
+    let thirdTableDataRow;
+    let thirdTableDataIndex =0;
+    let isUserDefiningThirdPlacesToKnockoutMatches;
+
+    while(thirdPlacesDefinedKnockoutMatches.length < 8 && thirdTableDataIndex < thirdPlacesTablesData.length && 
+        !isUserDefiningThirdPlacesToKnockoutMatches){
+        placesResult = defineThirdPlaceTablePlaces(thirdPlacesTablesData[thirdTableDataIndex]);
+        if(!isThirdPlaceTeamDefinedByKnockoutMatchNumber(thirdPlacesTablesData[thirdTableDataIndex][0].knockoutMatchNumber)){
+            if(placesResult.occurredFirstPlaceDraw){
+                //In this case, user need to define which team will be format the knockout match:
+                isUserDefiningThirdPlacesToKnockoutMatches = true;
+                showChooseThirdPlaceToKnockoutMatchModal(thirdTableDataIndex);
+            }else{
+                thirdTableDataRow = thirdPlacesTablesData[thirdTableDataIndex].find(t => t.place === 1);
+                thirdPlacesDefinedKnockoutMatches.push({"group": thirdTableDataRow.group, "team": 
+                thirdTableDataRow.team, "knockoutMatchNumber": thirdTableDataRow.knockoutMatchNumber, 
+                "knockoutMatchThirdPlaceRule": thirdTableDataRow.knockoutMatchThirdPlaceRule});
+                thirdPlacesTablesData = removeOfThirdPlaceTablesDataAllOccurrenceOfLastDefinedKnockoutMatchesTeam();
+            }
+        }
+        thirdTableDataIndex++;
+    }
+    console.log("SAIU DO LOOOP");
+    console.log(thirdPlacesDefinedKnockoutMatches);
+    if(thirdPlacesDefinedKnockoutMatches.length === 8){
+        definedFirstKnockoutStageTeamsMatches();
+    }
+}
+
+async function definedFirstKnockoutStageTeamsMatches(){
+    let firstKnockoutStageName = "32-Avos de Final";
+    //Obtendo as regras de formação das partidas, número das partidas e infos:
+    let handleReturn = await handleRequest(() => makeRequest(`/matches/knockoutStage/matchesRules?knockoutStageName=${firstKnockoutStageName}`, "GET"), 
+    null, false, ()=>{throw new Error();}, true, msgTitle);
+    let firstKnockoutStageMatchTeamsRules;
+
+    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+        firstKnockoutStageMatchTeamsRules = handleReturn.response.body;
+        hideModal();
+        console.log("firstKnockoutStageMatchTeamsRules:");
+        console.log([...firstKnockoutStageMatchTeamsRules]);
+    }
+
+    //Definindo dados das partidas da fase 32-avos:
+    let currentTeam1;
+    let currentTeam2;
+    let currentParsedRule;
+    for(let i=0;i<firstKnockoutStageMatchTeamsRules.length;i++){
+        currentParsedRule = parseFirstKnockoutStageMatchRule(firstKnockoutStageMatchTeamsRules[i].rule_team_1);
+        if(isThirdPlaceRuleToDefineKnockoutTeamMatch(currentParsedRule)){
+            currentTeam1 = thirdPlacesDefinedKnockoutMatches.find(t => t.knockoutMatchThirdPlaceRule === currentParsedRule.teamGroups).team;
+        }else{
+            currentTeam1 = getTeamNameOfGroupByPlace(currentParsedRule.teamGroups, currentParsedRule.teamGroupPlace);
+        }
+
+        currentParsedRule = parseFirstKnockoutStageMatchRule(firstKnockoutStageMatchTeamsRules[i].rule_team_2);
+        if(isThirdPlaceRuleToDefineKnockoutTeamMatch(currentParsedRule)){
+            currentTeam2 = thirdPlacesDefinedKnockoutMatches.find(t => t.knockoutMatchThirdPlaceRule === currentParsedRule.teamGroups).team;
+        }else{
+            currentTeam2 = getTeamNameOfGroupByPlace(currentParsedRule.teamGroups, currentParsedRule.teamGroupPlace);
+        }
+        firstStageKnockoutDefinedMatches.push({"team_1": currentTeam1, "team_2": currentTeam2, 
+            "match_number": firstKnockoutStageMatchTeamsRules[i].match_number});
+    }
+
+    console.log("firstStageKnockoutDefinedMatches:");
+    console.log(firstStageKnockoutDefinedMatches);
+
+    //Armazenando as partidas da fase mata-mata 32-avos de final no banco:
+    handleReturn = await handleRequest(() => makeRequest(`/matches/knockoutStage/defineMatches?knockoutStageName=${firstKnockoutStageName}`, 
+        "POST", JSON.stringify({"userIdInSweepestake": sessionStorage.getItem("userIdInSweepestake"), 
+            "knockoutMatches": firstStageKnockoutDefinedMatches}), true), null, false, ()=>{throw new Error();}, true, msgTitle);
+
+    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+        hideModal();
+        //TODO: ir para página mata-mata
+    }
+
+}
+
+function getTeamNameOfGroupByPlace(groupLetter, teamPlace){
+    console.log(groupLetter);
+    console.log(teamPlace);
+    let groupTableSDataIndex = String(groupLetter).charCodeAt() - ASCII_CHAR_A_DECIMAL_CODE;
+    console.log(groupTableSDataIndex);
+    return groupTablesData[groupTableSDataIndex].find(t => t.place === teamPlace).team;
+}
+
+function isThirdPlaceRuleToDefineKnockoutTeamMatch(parsedRule){
+    return parsedRule.teamGroupPlace === 3;
+}
+
+function parseFirstKnockoutStageMatchRule(rule){
+    let splitRuleBySpace = String(rule).split(" ");
+    let teamGroupPlace = Number(splitRuleBySpace[0].charAt(0));
+    let teamGroups = splitRuleBySpace[splitRuleBySpace.length - 1];
+
+    return {"teamGroupPlace": teamGroupPlace, "teamGroups": teamGroups};
+}
+
+function removeOfThirdPlaceTablesDataAllOccurrenceOfLastDefinedKnockoutMatchesTeam(){
+    let definedLastTeam = thirdPlacesDefinedKnockoutMatches.at(thirdPlacesDefinedKnockoutMatches.length - 1);
+    let thirdPlaceTablesDataAddressToDelete = [];
+
+    for(let tableIndex = 0;tableIndex < thirdPlacesTablesData.length;tableIndex++){
+        for(let tableRowIndex = 0;tableRowIndex<thirdPlacesTablesData[tableIndex].length;tableRowIndex++){
+            if(thirdPlacesTablesData[tableIndex][tableRowIndex].team === definedLastTeam.team){
+                //Trocando esse objeto com o último objeto para que seja possível utilizar a remoção via função pop():
+                let auxArray = thirdPlacesTablesData[tableIndex];
+                auxArray[tableRowIndex] = auxArray[auxArray.length - 1];
+                thirdPlaceTablesDataAddressToDelete.push(tableIndex);
+            }
+        }
+    }
+    
+    for(let i=0;i<thirdPlaceTablesDataAddressToDelete.length;i++){
+        thirdPlacesTablesData[thirdPlaceTablesDataAddressToDelete[i]].pop();
+        
+    }
+
+    console.log("THIRD PLACES DATA AFETER DELETES:");
+    console.log(thirdPlacesTablesData);
+
+    return thirdPlacesTablesData;
+
+}
+
+function showChooseThirdPlaceToKnockoutMatchModal(thirdTableDataIndex){
+    showModal(msgTitle + " - Definição de Partida da Fase Mata-Mata", generateHTMLChooseThirdPlaceToKnockoutMatchModal(thirdTableDataIndex), 
+    true, "CONFIRMAR", () => {storageDefinedThirdPlaceTeamInKnockoutStageMatch(thirdTableDataIndex);prepareKnockoutStage()}, true, 
+    "ALTERAR FASE DE GRUPOS", restoreKnockoutStagePrepareData, true);
+} 
+
+function isThirdPlaceTeamDefinedByKnockoutMatchNumber(matchNumber){
+    return thirdPlacesDefinedKnockoutMatches.some(t => t.knockoutMatchNumber === matchNumber);
+}
+
+function storageDefinedThirdPlaceTeamInKnockoutStageMatch(thirdTableDataIndex){
+    let checkboxs = document.getElementsByName("flexRadioDefault");
+    let thirdTableData = thirdPlacesTablesData[thirdTableDataIndex];
+    let thirdTableDataRow;
+    for(let i=0;i<checkboxs.length;i++){
+        if(checkboxs[i].checked){
+            thirdTableDataRow = thirdTableData[Number(checkboxs[i].id.split("_")[1])];
+            thirdPlacesDefinedKnockoutMatches.push({"group": thirdTableDataRow.group, "team": 
+                thirdTableDataRow.team, "knockoutMatchNumber": thirdTableDataRow.knockoutMatchNumber, 
+                "knockoutMatchThirdPlaceRule": thirdTableDataRow.knockoutMatchThirdPlaceRule});
+            //Remove team defined:
+            thirdPlacesTablesData = removeOfThirdPlaceTablesDataAllOccurrenceOfLastDefinedKnockoutMatchesTeam();
+            console.log("thirdPlacesDefinedKnockoutMatches:");
+            console.log(thirdPlacesDefinedKnockoutMatches);
+            return;
+        }
+    }
+
+}
+
+function restoreKnockoutStagePrepareData(){
+    thirdPlacesTablesData.length = 0;
+    thirdPlacesDefinedKnockoutMatches.length = 0;
+    console.log("EXEC RESTORE");
+}
+
+function generateHTMLChooseThirdPlaceToKnockoutMatchModal(thirdTableDataIndex){
+    let thirdTableData = thirdPlacesTablesData[thirdTableDataIndex];
+    let html = `
+    <!-- A div container abaixo serve apenas para que as labels fiquem alinhadas 
+        a esquerda, não sendo necessário em todas as páginas.
+        Obs.: ela só cumprirá esse objetivo se os elementos de maior 
+        largura da página forem os campos. -->
+    <div class="container app-restrict-container mx-auto">
+        <div class="row d-flex justify-content-center align-items-center">
+            <div class="col-12 text-start">
+                <p>Devido a um empate entre os terceiros lugares dos grupos 
+                ${thirdTableData[0].knockoutMatchThirdPlaceRule}, 
+                é necessário escolher quais das seleções abaixo comporá essa partida:</p>
+            </div>
+        </div>`;
+
+
+    let currentCheckboxId;
+    for(let i =0;i<thirdTableData.length;i++){
+        if(thirdTableData[i].place === 1){
+            currentCheckboxId = "thirdTableIndex_" + i;
+            html += `<div class="row d-flex justify-content-center align-items-center">
+                <div class="col-12 text-start">
+                    <div class="form-check">
+                        <input class="app-checkbox-field form-check-input" type="radio" name="flexRadioDefault" id="${currentCheckboxId}">
+                        <label class="form-check-label" for="${currentCheckboxId}">
+                            ${thirdTableData[i].team}
+                        </label>
+                    </div>
+                </div>
+            </div>`;
+        }
+    }
+
+    return html;
+}
+
+function getThirdPlacesDataFromGroupTablesData(groupsLetterArray){
+    let currentGroupIndex;
+    let thirdPlacesData = [];
+    for(let i=0;i<groupsLetterArray.length;i++){
+         currentGroupIndex = String(groupsLetterArray[i]).charCodeAt() - ASCII_CHAR_A_DECIMAL_CODE;
+         thirdPlacesData.push(groupTablesData[currentGroupIndex][2]);
+    }
+
+    return thirdPlacesData;
+}
+
+function createThirdPlacesTablesData(){
+    let thirdPlacesData;
+    let thirdPlacesTable;
+    let knockoutMatchNumber;
+    let knockoutMatchThirdPlaceRule;
+    let knockoutMatchTeamNumber;    
+
+    thirdPlacesData = getThirdPlacesDataFromGroupTablesData(["A", "B", "C", "D", "F"]);
+    console.log(thirdPlacesData);
+    knockoutMatchNumber = 74;
+    knockoutMatchThirdPlaceRule = "A/B/C/D/F";
+    
+    thirdPlacesTable = [];
+    for(let i=0;i<thirdPlacesData.length;i++){
+        thirdPlacesTable.push(
+            {"knockoutMatchNumber": knockoutMatchNumber, "knockoutMatchThirdPlaceRule": knockoutMatchThirdPlaceRule, 
+                 "place": NOT_DEFINED_PLACE_VALUE, 
+                "group": thirdPlacesData[i].group, "team": thirdPlacesData[i].team, "pt": thirdPlacesData[i].pt, 
+                "gs": thirdPlacesData[i].gs, "gr": thirdPlacesData[i].gr, "gd": thirdPlacesData[i].gd }
+        );
+    }
+    console.log(thirdPlacesTable);
+    thirdPlacesTablesData.push(thirdPlacesTable);
+
+    thirdPlacesData = getThirdPlacesDataFromGroupTablesData(["C", "D", "F", "G", "H"]);
+    knockoutMatchNumber = 77;
+    knockoutMatchThirdPlaceRule = "C/D/F/G/H";
+    
+    thirdPlacesTable = [];
+    for(let i=0;i<thirdPlacesData.length;i++){
+        thirdPlacesTable.push(
+            {"knockoutMatchNumber": knockoutMatchNumber, "knockoutMatchThirdPlaceRule": knockoutMatchThirdPlaceRule, 
+                 "place": NOT_DEFINED_PLACE_VALUE, 
+                "group": thirdPlacesData[i].group, "team": thirdPlacesData[i].team, "pt": thirdPlacesData[i].pt, 
+                "gs": thirdPlacesData[i].gs, "gr": thirdPlacesData[i].gr, "gd": thirdPlacesData[i].gd },
+
+        );
+    }
+    thirdPlacesTablesData.push(thirdPlacesTable);
+
+    thirdPlacesData = getThirdPlacesDataFromGroupTablesData(["C", "E", "F", "H", "I"]);
+    knockoutMatchNumber = 79;
+    knockoutMatchThirdPlaceRule = "C/E/F/H/I";
+    
+    thirdPlacesTable = [];
+    for(let i=0;i<thirdPlacesData.length;i++){
+        thirdPlacesTable.push(
+            {"knockoutMatchNumber": knockoutMatchNumber, "knockoutMatchThirdPlaceRule": knockoutMatchThirdPlaceRule, 
+                 "place": NOT_DEFINED_PLACE_VALUE, 
+                "group": thirdPlacesData[i].group, "team": thirdPlacesData[i].team, "pt": thirdPlacesData[i].pt, 
+                "gs": thirdPlacesData[i].gs, "gr": thirdPlacesData[i].gr, "gd": thirdPlacesData[i].gd },
+
+        );
+    }
+    thirdPlacesTablesData.push(thirdPlacesTable);
+
+    thirdPlacesData = getThirdPlacesDataFromGroupTablesData(["E", "H", "I", "J", "K"]);
+    knockoutMatchNumber = 80;
+    knockoutMatchThirdPlaceRule = "E/H/I/J/K";
+    
+    thirdPlacesTable = [];
+    for(let i=0;i<thirdPlacesData.length;i++){
+        thirdPlacesTable.push(
+            {"knockoutMatchNumber": knockoutMatchNumber, "knockoutMatchThirdPlaceRule": knockoutMatchThirdPlaceRule, 
+                 "place": NOT_DEFINED_PLACE_VALUE, 
+                "group": thirdPlacesData[i].group, "team": thirdPlacesData[i].team, "pt": thirdPlacesData[i].pt, 
+                "gs": thirdPlacesData[i].gs, "gr": thirdPlacesData[i].gr, "gd": thirdPlacesData[i].gd },
+
+        );
+    }
+    thirdPlacesTablesData.push(thirdPlacesTable);
+
+    thirdPlacesData = getThirdPlacesDataFromGroupTablesData(["B", "E", "F", "I", "J"]);
+    knockoutMatchNumber = 81;
+    knockoutMatchThirdPlaceRule = "B/E/F/I/J";
+    
+    thirdPlacesTable = [];
+    for(let i=0;i<thirdPlacesData.length;i++){
+        thirdPlacesTable.push(
+            {"knockoutMatchNumber": knockoutMatchNumber, "knockoutMatchThirdPlaceRule": knockoutMatchThirdPlaceRule, 
+                 "place": NOT_DEFINED_PLACE_VALUE, 
+                "group": thirdPlacesData[i].group, "team": thirdPlacesData[i].team, "pt": thirdPlacesData[i].pt, 
+                "gs": thirdPlacesData[i].gs, "gr": thirdPlacesData[i].gr, "gd": thirdPlacesData[i].gd },
+
+        );
+    }
+    thirdPlacesTablesData.push(thirdPlacesTable);
+
+    thirdPlacesData = getThirdPlacesDataFromGroupTablesData(["A", "E", "H", "I", "J"]);
+    knockoutMatchNumber = 82;
+    knockoutMatchThirdPlaceRule = "A/E/H/I/J";
+    
+    thirdPlacesTable = [];
+    for(let i=0;i<thirdPlacesData.length;i++){
+        thirdPlacesTable.push(
+            {"knockoutMatchNumber": knockoutMatchNumber, "knockoutMatchThirdPlaceRule": knockoutMatchThirdPlaceRule, 
+                 "place": NOT_DEFINED_PLACE_VALUE, 
+                "group": thirdPlacesData[i].group, "team": thirdPlacesData[i].team, "pt": thirdPlacesData[i].pt, 
+                "gs": thirdPlacesData[i].gs, "gr": thirdPlacesData[i].gr, "gd": thirdPlacesData[i].gd },
+
+        );
+    }
+    thirdPlacesTablesData.push(thirdPlacesTable);
+
+    thirdPlacesData = getThirdPlacesDataFromGroupTablesData(["E", "F", "G", "I", "J"]);
+    knockoutMatchNumber = 85;
+    knockoutMatchThirdPlaceRule = "E/F/G/I/J";
+    
+    thirdPlacesTable = [];
+    for(let i=0;i<thirdPlacesData.length;i++){
+        thirdPlacesTable.push(
+            {"knockoutMatchNumber": knockoutMatchNumber, "knockoutMatchThirdPlaceRule": knockoutMatchThirdPlaceRule, 
+                 "place": NOT_DEFINED_PLACE_VALUE, 
+                "group": thirdPlacesData[i].group, "team": thirdPlacesData[i].team, "pt": thirdPlacesData[i].pt, 
+                "gs": thirdPlacesData[i].gs, "gr": thirdPlacesData[i].gr, "gd": thirdPlacesData[i].gd },
+
+        );
+    }
+    thirdPlacesTablesData.push(thirdPlacesTable);
+
+    thirdPlacesData = getThirdPlacesDataFromGroupTablesData(["D", "E", "I", "J", "L"]);
+    knockoutMatchNumber = 87;
+    knockoutMatchThirdPlaceRule = "D/E/I/J/L";
+    
+    thirdPlacesTable = [];
+    for(let i=0;i<thirdPlacesData.length;i++){
+        thirdPlacesTable.push(
+            {"knockoutMatchNumber": knockoutMatchNumber, "knockoutMatchThirdPlaceRule": knockoutMatchThirdPlaceRule, 
+                 "place": NOT_DEFINED_PLACE_VALUE, 
+                "group": thirdPlacesData[i].group, "team": thirdPlacesData[i].team, "pt": thirdPlacesData[i].pt, 
+                "gs": thirdPlacesData[i].gs, "gr": thirdPlacesData[i].gr, "gd": thirdPlacesData[i].gd },
+
+        );
+    }
+    thirdPlacesTablesData.push(thirdPlacesTable);
+
+    console.log("Third Places Tables:");
+    console.log(thirdPlacesTablesData);
+
+}
+
+function defineThirdPlaceTablePlaces(thirdPlaceTable, attributesReference=["pt", "gd", "gs"]){
+    let lastTeamPlace;
+    let attributeRefValueOfLastTeam;
+    let occuredFirstPlaceDraw = true;
+    let attributeRefIndex=0;
+    let attributeReference;
+
+    while(occuredFirstPlaceDraw && attributeRefIndex < attributesReference.length){
+        attributeReference = attributesReference[attributeRefIndex];
+        switch(attributeRefIndex){
+            case 0:
+                thirdPlaceTable = sortTeamGroupByColumn(thirdPlaceTable, [{attribute:attributeReference, order:"desc"}]);
+                break;
+            case 1:
+                thirdPlaceTable = sortTeamGroupByColumn(thirdPlaceTable, [{attribute:attributesReference[attributeRefIndex-1], order:"desc"}, 
+                    {attribute:attributesReference[attributeRefIndex], order:"desc"}]);
+            default:
+                thirdPlaceTable = sortTeamGroupByColumn(thirdPlaceTable, [{attribute:attributesReference[attributeRefIndex-2], order:"desc"},
+                    {attribute:attributesReference[attributeRefIndex-1], order:"desc"}, 
+                    {attribute:attributesReference[attributeRefIndex], order:"desc"}]);
+        }
+
+        
+        occuredFirstPlaceDraw=false;
+        for(let i =0;i<thirdPlaceTable.length;i++){
+            if(i===0){
+                thirdPlaceTable[i].place = i + 1;
+                //occuredFirstPlaceDraw = true;
+            }else{
+                if(attributeRefValueOfLastTeam === thirdPlaceTable[i][attributeReference]){
+                    thirdPlaceTable[i].place = lastTeamPlace;
+                    if(lastTeamPlace === 1){
+                        occuredFirstPlaceDraw = true;
+                    }               
+                }else{
+                    thirdPlaceTable[i].place = i + 1;
+                }
+            }
+            lastTeamPlace = thirdPlaceTable[i].place;
+            attributeRefValueOfLastTeam = thirdPlaceTable[i][attributeReference];
+        }
+        attributeRefIndex++;
+    }
+
+
+    return {"occurredFirstPlaceDraw": occuredFirstPlaceDraw, "thirdPlaceTable": thirdPlaceTable};
 }

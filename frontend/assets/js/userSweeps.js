@@ -182,9 +182,9 @@ async function handleClickInFillSweepsButton(event){
             "OK", null, false);
     }else{
        //Adicionando o nome do bolão no local storage:
-       storeSelectSweepsNameToFillInLocalStorage(sweepsName);
+       storeSelectSweepsNameToFillInSessionStorage(sweepsName);
        //Adicionando o id do usuário na tabela sweepstake_users no local storage:
-       await storeSelectedSweepstakeUserIdInLocalStorage(sweepsName);
+       await storeSelectedSweepstakeUserIdInSessionStorage(sweepsName);
        if(failedInSomeRequestToOpenSweepsFillPage){
         return;
        }
@@ -225,7 +225,7 @@ async function haveUserDataRequest(){
         userData = handleReturn.response.body;
         //Armazenando também os dados no local storage para que 
         // as outras páginas pós-login tenham acesso a esses dados:
-        storeUserLoggedDataInLocalStorage(userData);
+        storeUserLoggedDataInSessionStorage(userData);
         hideModal();
         console.log(userData);
     }else{
@@ -750,18 +750,18 @@ async function haveJoinSweepsRequest(){
 
 }
 
-function storeUserLoggedDataInLocalStorage(jsonUserData){
-    localStorage.setItem("userId", jsonUserData.id);
-    localStorage.setItem("userWhatsappNumber", jsonUserData.whatsappNumber);
-    localStorage.setItem("userName", jsonUserData.name);
-    localStorage.setItem("userIsAdmin", jsonUserData.isAdmin);
+function storeUserLoggedDataInSessionStorage(jsonUserData){
+    sessionStorage.setItem("userId", jsonUserData.id);
+    sessionStorage.setItem("userWhatsappNumber", jsonUserData.whatsappNumber);
+    sessionStorage.setItem("userName", jsonUserData.name);
+    sessionStorage.setItem("userIsAdmin", jsonUserData.isAdmin);
 }
 
-function storeSelectSweepsNameToFillInLocalStorage(sweepsName){
-    localStorage.setItem("fillingSweepstake", sweepsName);
+function storeSelectSweepsNameToFillInSessionStorage(sweepsName){
+    sessionStorage.setItem("fillingSweepstake", sweepsName);
 }
 
-async function storeSelectedSweepstakeUserIdInLocalStorage(sweepsName){
+async function storeSelectedSweepstakeUserIdInSessionStorage(sweepsName){
 
     let handleReturn = await handleRequest(() => makeRequest("/sweeps/userId?sweepsName=" + sweepsName + "&userId=" + userData.id, "GET"), 
     null, false, ()=>{throw new Error();}, true, msgTitle);
@@ -769,7 +769,7 @@ async function storeSelectedSweepstakeUserIdInLocalStorage(sweepsName){
     if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
         handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
         handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
-        localStorage.setItem("userIdInSweepestake", handleReturn.response.body.sweepstake_user_id);
+        sessionStorage.setItem("userIdInSweepestake", handleReturn.response.body.sweepstake_user_id);
         hideModal();
     }else{
         failedInSomeRequestToOpenSweepsFillPage = true;

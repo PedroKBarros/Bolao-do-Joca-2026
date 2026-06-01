@@ -12,7 +12,7 @@ const meRoutes = require('./routes/meRoutes');
 const sweepsRoutes = require('./routes/sweepsRoutes');
 const matchesRoutes = require('./routes/matchesRoutes');
 const predictionsRoutes = require('./routes/predictionsRoutes');
-//const drawsRoutes = require('./routes/drawsRoutes');
+const drawsRoutes = require('./routes/drawsRoutes');
 
 const app = express();
 
@@ -33,7 +33,7 @@ app.use('/api', meRoutes);
 app.use('/api', sweepsRoutes);
 app.use('/api', matchesRoutes);
 app.use('/api', predictionsRoutes);
-//app.use('/api', drawsRoutes);
+app.use('/api', drawsRoutes);
 
 //"/api" é o prefixo da API.
 

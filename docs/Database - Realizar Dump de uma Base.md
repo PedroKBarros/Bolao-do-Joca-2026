@@ -6,7 +6,7 @@ Há diversos motivos para realizar um dump (cópia) de uma base de dados, como, 
 ## Dump com dados:
 Para realizar dump da estrutura das tabelas e de seus respectivos dados, executar:
 ```
-mysqldump -u root -p bj_2026 > schema_tests.sql
+mysqldump -u root -p --single-transaction --routines --triggers --default-character-set=utf8mb4 --databases bj_2026 > schema_tests.sql
 ```
 Repare que 'bj_2026' é o nome da base a partir da qual o dump será realizado e o "schema_tests.sql" é o arquivo para o qual o resultado do dump deverá ser armazenado. Após realizar o dump, basta importar esse arquivo na base desejada com o comando:
 ```

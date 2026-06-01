@@ -10,7 +10,7 @@ mysqldump -u root -p --single-transaction --routines --triggers --default-charac
 ```
 Repare que 'bj_2026' é o nome da base a partir da qual o dump será realizado e o "schema_tests.sql" é o arquivo para o qual o resultado do dump deverá ser armazenado. Após realizar o dump, basta importar esse arquivo na base desejada com o comando:
 ```
-mysql -u root -p --single-transaction --routines --triggers --default-character-set=utf8mb4 --databases bj2026_tests < schema_tests.sql
+ mysql -u appuser -p bj_2026 < database/backups/bj_2026_bkp_010626.sql
 ```
  Repare que 'bj2026_tests' é o nome da base de dados que receberá a mesma estrutura e os mesmos dados da base "bj2026".
 
@@ -23,7 +23,7 @@ mysqldump --no-data -u root -p --single-transaction --routines --triggers --defa
 ```
 Repare que 'bj_2026' é o nome da base a partir da qual o dump será realizado e o "schema_tests.sql" é o arquivo para o qual o resultado do dump deverá ser armazenado. Após realizar o dump, basta importar esse arquivo na base desejada com o comando:
 ```
-mysql -u root -p bj2026_tests < schema_tests.sql
+mysql -u root -p bj_2026 < schema_tests.sql
 ```
  Repare que 'bj2026_tests' é o nome da base de dados que receberá a mesma estrutura da base "bj2026".
 

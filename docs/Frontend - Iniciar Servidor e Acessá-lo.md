@@ -7,13 +7,20 @@ No backend utilizamos "module.export" para tornar importáveis funções, variá
 
 ## Consequência do Uso de ES Modules e Como Iniciar o Servidor:
 
-Devido ao uso de ES Modules em alguns arquivos Javascript do front-end, para podermos testar as páginas no ambiente de desenvolvimento, é necessário utilizar o Live Server, extensão do VS Code.
+Devido ao uso de ES Modules em alguns arquivos Javascript do front-end, para podermos testar as páginas no ambiente de desenvolvimento, é necessário criar um servidor local.
+
+### Via npx http-server (terminal):
+1. Abrir terminal na raíz do projeto
+2. Executar: ```npx http-server frontend -p 5500``` 
+
+### Via Live Server (extensão do VSCode):
 Com ela instalada basta:
-1. Clicar em "Go Live", opção do Live Server que costuma estar disponível na parte inferior direita do VS Code
+1. Abrir VSCode a partir da pasta "/frontend"
+2. Clicar em "Go Live", opção do Live Server que costuma estar disponível na parte inferior direita do VS Code
 Provavelmente será aberto um navegador com url indicando endereço "0.0.0.0:5500"
 Observação: o host do Live Server foi configurado para "0.0.0.0". Isso foi feito para permitir que dispositivos externos conectados a mesma rede wi-fi do dispositivo que iniciou o Live Server, consigam acessar o servidor, tornando-se útil para testar a aplicação web em smarthphones e outros dispositivos.
-2. Alterar endereço para 127.0.0.1:5500 ou localhost:5500
-3. Acessar a página do front-end desejada 
+3. Alterar endereço para 127.0.0.1:5500 ou localhost:5500
+4. Acessar a página do front-end desejada
 
 ## Acessando Servidor por Dispositivo Externo:
 

@@ -36,11 +36,13 @@ Observação: inicialmente, cogitou-se configurar duas bases no ambiente, para d
 Observação: o "dev" é um script definido no package.json que executa o script /backend/src/server.js via nodemon.
    
 4. Verifique se foi exibida a mensagem "Servidor rodando em http://0.0.0.0:3000" no terminal
-5. Abra a pasta "/frontend" no VSCode (é para abrir o VSCode a partir dessa pasta)
-Obs.: o passo 5 é necessário, pois com objetivo de facilitar a configuração do ambiente de produção, os arquivos HTML foram colocados na raíz da pasta "/frontend" e todos os caminhos relativos contidos nos arquivos HTML e nos scripts JS começam a partir dessa pasta. 
-6. Inicie o frontend executando o Live Server (opção "Go Live")
-7. Quando o navegador abrir, altere o endereço para "http://127.0.0.1:5500/index.html"
-8. Divirta-se!
+5. Abra outro terminal e execute o seguinte comando a partir da raíz do projeto: ```npx http-server frontend -p 5500``` 
+OU via Live Server (extensão VSCode):
+5. Abra o pasta "/frontend" no VSCode (é para abrir o VSCode a partir dessa pasta)
+Obs.: o passo 5.1 é necessário, pois com objetivo de facilitar a configuração do ambiente de produção, os arquivos HTML foram colocados na raíz da pasta "/frontend" e todos os caminhos relativos contidos nos arquivos HTML e nos scripts JS começam a partir dessa pasta. 
+5.1. Inicie o frontend executando o Live Server (opção "Go Live")
+5.2. Quando o navegador abrir, altere o endereço para "http://127.0.0.1:5500/index.html"
+6. Divirta-se!
 
 ## Diferenças entre o ambiente de desenvolvimento e o ambiente de produção:
 

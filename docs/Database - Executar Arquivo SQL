@@ -2,10 +2,12 @@
 
 Para executar um arquivo SQL, como os arquivos contidos e nas pastas /database/migrations e /database/seeds, utilizar o seguinte comando:
 ```
-mysql -u root -p bj_2026 < caminho_arquivo.sql
+mysql --default-character-set=utf8mb4 -u root -p bj_2026 < caminho_arquivo.sql
 ```
 
 Exemplo: caso estejamos na pasta /database, para executar o arquivo "abc.sql" contido na pasta /database/migrations, utilizar o comando:
 ```
-mysql -u root -p bj_2026 < \migrations\abc.sql
+mysql --default-character-set=utf8mb4 -u root -p bj_2026 < \migrations\abc.sql
 ```
+
+**MUITO IMPORTANTE:** sempre usar o parâmetro ```--default-character-set=utf8mb4``` para que a conexão do banco trabalhe com as strings utilizando o mesmo chartset do banco.

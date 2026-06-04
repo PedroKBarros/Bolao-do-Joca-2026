@@ -115,3 +115,22 @@ CREATE TABLE IF NOT EXISTS SWEEPSTAKE_LOGS (
     FOREIGN KEY(sweepstake_name) REFERENCES SWEEPSTAKE(name),
     FOREIGN KEY(user_id) REFERENCES USERS(id)
 );
+
+CREATE TABLE IF NOT EXISTS MANUAL_SOLUTIONS_GROUP_STAGE_DRAWS (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    place INT NOT NULL,
+    sweepstake_user_id INT NOT NULL,
+    group_letter CHAR(1) NOT NULL,
+    team_name VARCHAR(255) NOT NULL,     
+    FOREIGN KEY(group_letter, team_name) REFERENCES GROUP_ELEMENTS(group_letter, team_name),
+    FOREIGN KEY(sweepstake_user_id) REFERENCES SWEEPSTAKE_USERS(id)
+);
+
+CREATE TABLE IF NOT EXISTS USERS_KNOCKOUT_STAGES_STATUS (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sweepstake_user_id INT NOT NULL,
+    knockout_stages_name VARCHAR(255) NOT NULL,
+    is_all_filled BOOLEAN NOT NULL DEFAULT FALSE,     
+    FOREIGN KEY(sweepstake_user_id) REFERENCES SWEEPSTAKE_USERS(id),
+    FOREIGN KEY(knockout_stages_name) REFERENCES KNOCKOUT_STAGES(name)
+);

@@ -29,4 +29,25 @@ async function setToNotMoreValidGroupStageDrawsManualSolutions(req, res){
   }  
 }
 
-module.exports = { getGroupStageDrawsManualSolutions, saveGroupStageDrawsManualSolutions, setToNotMoreValidGroupStageDrawsManualSolutions };
+async function saveKnockoutStageDrawManualSolution(req, res) {
+  try {
+    const { userIdInSweepestake, manualDrawSolution } = req.body;
+    await drawsServ.saveKnockoutStageDrawManualSolution(userIdInSweepestake, manualDrawSolution);
+    res.status(200).json({ message: "Solução manual de empate salva com sucesso!" });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+async function undoSavedKnockoutStageDrawManualSolution(req, res) {
+  try {
+    const { userIdInSweepestake, matchesNumber } = req.body;
+    await drawsServ.undoSavedKnockoutStageDrawManualSolution(userIdInSweepestake, matchesNumber);
+    res.status(200).json({ message: "Solução manual de empate desfeita com sucesso!" });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+module.exports = { getGroupStageDrawsManualSolutions, saveGroupStageDrawsManualSolutions, setToNotMoreValidGroupStageDrawsManualSolutions,
+  saveKnockoutStageDrawManualSolution, undoSavedKnockoutStageDrawManualSolution };

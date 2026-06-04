@@ -14,6 +14,7 @@ var sweepsData;
 var allSweepsNamesData;
 var failedInSomeInitRequest = false;
 var failedInSomeRequestToOpenSweepsFillPage = false;
+var knockoutStagesFilledStatus; //Array que serve para indicar se o usuário está na fase de grupos, mata-mata ou já finalizou tudo
 
 const newSweepsData = `
 {
@@ -188,10 +189,49 @@ async function handleClickInFillSweepsButton(event){
        if(failedInSomeRequestToOpenSweepsFillPage){
         return;
        }
+        await getAllKnockoutStagesFilledStatus();
+       if(failedInSomeRequestToOpenSweepsFillPage){
+        return;
+       }
 
-       goToPage(PAGE_CONFIGS.PG_GROUP_STAGE_MATCHES_PREDICT);
+       /*Verificando se é para exibir a página da fase de grupos, a página da fase mata-mata ou 
+       mensagem avisando que bolão já foi preenchido:*/
+       console.log("knockoutStagesFilledStatus.length:");
+       console.log(knockoutStagesFilledStatus.length);
+       if(knockoutStagesFilledStatus.length === 0){
+            goToPage(PAGE_CONFIGS.PG_GROUP_STAGE_MATCHES_PREDICT);
+       }else{
+        if(knockoutStagesFilledStatus.length > 0 && knockoutStagesFilledStatus.length < 6){
+            goToPage(PAGE_CONFIGS.PG_KNOCKOUT_STAGES_MATCHES_PREDICT);            
+        }else{
+            showModal(msgTitle, `Você já finalizou o preenchimento desse bolão. Se quiser baixar 
+                uma cópia das suas respostas, clique no botão ao lado.`, true, "OK", null, false);
+        }
+       }
+
     }
 
+}
+
+async function getAllKnockoutStagesFilledStatus(){
+
+    let userIdInSweepestake = sessionStorage.getItem("userIdInSweepestake");
+    console.log("userIdInSweepestake:");
+    console.log(userIdInSweepestake);
+    let handleReturn = await handleRequest(() => makeRequest(`/predictions/allKnockoutStages/filledStatus?userIdInSweepestake=${userIdInSweepestake}`, "GET"), 
+    null, false, ()=>{throw new Error();}, true, msgTitle);
+
+    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+            knockoutStagesFilledStatus = handleReturn.response.body;
+            if(Object.keys(knockoutStagesFilledStatus).length === 0){
+                knockoutStagesFilledStatus = [];
+            }
+        hideModal();
+    }else{
+        failedInSomeRequestToOpenSweepsFillPage = true;
+    }
 }
 
 async function checkIfUserIsInSweeps(sweepsName){

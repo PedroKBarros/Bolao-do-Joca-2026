@@ -111,6 +111,10 @@ body{
     color: var(--app-red);
 }
 
+.app-green-txt{
+    color: var(--app-green);
+}
+
 .app-white-txt{
     color: var(--app-white);
 }
@@ -280,6 +284,12 @@ body{
     border: 1px solid #000000;
 }
 
+.app-predicts-field{
+    border-radius: 10px;
+    border: 2px solid var(--app-blue);
+    font-size: var(--app-input-texts-font-size);   
+}
+
 .app-alert-field{
     border: 3px dotted var(--app-red);    
 }
@@ -366,6 +376,18 @@ button:hover {
     padding-top: 10px;
 }
 
+.app-txt-dotted-box {
+    font-size: var(--app-small-texts-font-size);
+    font-weight: normal;
+    color: var(--app-obs-text-color);
+    background-color: var(--app-white);
+    border-spacing: 0;
+    border: 2px dotted #000000;
+    border-radius: 10px;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
 
 .app-group-matches {
     border-spacing: 0;
@@ -435,3 +457,27 @@ button:hover {
   word-wrap: break-word;
 
 }
+
+.app-knockout-match {
+    border-spacing: 0;
+    border: 2px dotted #000000;
+    border-radius: 10px;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-bottom: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 20px;
+}
+
+.app-knockout-matches-area{
+    border-spacing: 0;
+    border: 2px dotted #000000;
+    border-radius: 10px;
+    margin-left: 2px;
+    margin-right: 2px;
+    padding-left: 2px;
+    padding-right: 2px;
+    left: 0;
+}
+

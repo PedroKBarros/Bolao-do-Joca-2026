@@ -1,0 +1,2 @@
+INSERT INTO SWEEPSTAKE (name, keyword_hash, quota, group_link, start_date_participation, final_date_participation, is_closed, status, author_user_id)
+VALUES ("Bolão Teste 2", "$2b$10$S4o.Q4gDkEL1lqu5MxTnHuk72h5Ms4B1pAOipawQV/lUlM6JxRMvi", 50.00, NULL, "0000-00-00 00:00:00", "0000-00-00 00:00:00", 0, "XYZ", 205);

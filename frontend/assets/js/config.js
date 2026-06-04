@@ -15,7 +15,9 @@ export const PAGE_CONFIGS = {
     PG_REGISTER_NAME: "register",
     PG_LOGIN_NAME: "login",
     PG_SWEEPS_NAME: "userSweeps",
-    PG_GROUP_STAGE_MATCHES_PREDICT: "groupStageMatchesPredict"
+    PG_GROUP_STAGE_MATCHES_PREDICT: "groupStageMatchesPredict",
+    PG_KNOCKOUT_STAGES_MATCHES_PREDICT: "knockoutStagesMatchesPredict",
+    PG_FINISH_SWEEPSTAKE: "finishSweepstake"
 }
 
 export function getFrontendBaseUrl(){

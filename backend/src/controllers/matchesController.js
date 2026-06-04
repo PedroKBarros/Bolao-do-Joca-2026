@@ -30,7 +30,7 @@ async function defineKnockoutStageMatches(req, res){
     const { knockoutStageName } = req.query;
     const { userIdInSweepestake, knockoutMatches } = req.body;
     await matchesServ.defineKnockoutStageMatches(knockoutStageName, userIdInSweepestake, knockoutMatches)
-    res.status(200).json("Todas as partidas da primeira fase mata-mata definidas com sucesso!");
+    res.status(200).json("Todas as partidas da fase mata-mata definidas com sucesso!");
   } catch (err) {
     res.status(400).json({ message: err.message });
   }

@@ -2,6 +2,10 @@ import { goToPage, showLoadingModal, goToHomePage, makeRequest, handleRequest, H
     loadModalInHtmlPage, showModal, hideModal, loadHtmlComponentInHtmlPage, 
     getHtmlOfComponent, addEventsToUpdateDropdownSelectedItem, setDefaultDropdownSelectedItem, 
     formatUrlToExternUrl} from "./common.js";
+import {defineMainElementMarginTop, defineResizeEvent, getUserDataFromSessionStorage, 
+    getSweepsNameFromSessionStorage, addSweepsNameInPageHeader, defineEventsInHeaderButtons,
+    showInstructionMsg, defineLoadPageEvents, updateSaveStatus, normalizeScoreTeamInput, 
+    checkPartialFilledMatches, checkInvalidFilledMatches, showReviewMatchesMsg} from "./commonPredict.js";
 import { PAGE_CONFIGS } from "./config.js";
 
 const msgTitle = "Predições";
@@ -20,6 +24,7 @@ var secundaryStatusHtmlElement = document.getElementById("secundaryStatus");
 var thirdPlacesTablesData = [];
 var thirdPlacesDefinedKnockoutMatches = [];
 var firstStageKnockoutDefinedMatches = [];
+var knockoutStagesFilledStatus;
 
 const TOTAL_GROUPS = 12;
 const TOTAL_MATCHES_PER_TEAM = 3;
@@ -42,11 +47,15 @@ const DRAW_SOLUTION_STATUS = {inProgress: "IN PROGRESS", automaticSolutionFailed
 const GROUP_MATCHES_DRAW_ALERT_TXT = "Desempate Necessário";
 
 export async function init(){
+    await loadModalInHtmlPage();
+    await checkIfUserCanAccessThisPage();
+    if(failedInSomeInitRequest){
+        return;
+    }
     defineMainElementMarginTop(); //Necessário para que o header não sobreponha parte dos elementos da main
     defineResizeEvent();
-    getUserDataFromSessionStorage();
-    getSweepsNameFromSessionStorage();
-    await loadModalInHtmlPage();
+    userData = getUserDataFromSessionStorage();
+    sweepsName = getSweepsNameFromSessionStorage();
     await getMatchesOfGroupsStage();
     if(failedInSomeInitRequest){
         return;
@@ -59,11 +68,12 @@ export async function init(){
     if(failedInSomeInitRequest){
         return;
     }
-    addSweepsNameInPageHeader();
-    defineEventsInHeaderButtons();
+    addSweepsNameInPageHeader(sweepsName);
+    defineEventsInHeaderButtons(saveData, () => {showInstructionMsg(msgTitle);}, prepareKnockoutStage);
     await defineGroupMatchesHtmlUi();
     await defineMatchesHtmlUi();
     showSavedPredictDataInInputFields();
+    showManualDrawSolutionsSaved();
     /* 
     * Limpando o array, pois como os campos já possuem evento, 
     * a função showSavedPredictDataInInputFields dispara eles, fazendo 
@@ -77,24 +87,12 @@ export async function init(){
     updateHtmlTables();
     //Atualizando status de total de jogos preenchidos:
     updateTotalFilledMatchesStatus(predictData.length);
-    defineLoadPageEvents();
+    defineLoadPageEvents(secundaryStatusHtmlElement);
 
     if(predictData.length === 0){
-        showInstructionMsg();
+        showInstructionMsg(msgTitle);
     }
 
-}
-
-function defineMainElementMarginTop() {
-    const header = document.querySelector("header");
-    const main = document.querySelector("main");
-    let mainMarginTop = header.offsetHeight + 10;
-
-    main.style.marginTop = `${mainMarginTop}px`;
-}
-
-function defineResizeEvent(){
-    window.addEventListener("resize", defineMainElementMarginTop);
 }
 
 async function getManualDrawSolutions(){
@@ -108,40 +106,14 @@ async function getManualDrawSolutions(){
         handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
         handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
         manualDrawsSolutions = handleReturn.response.body;
+        if(Object.keys(manualDrawsSolutions).length === 0){
+            manualDrawsSolutions = [];
+        }
         hideModal();
-        console.log("manualDrawSolutions:");
-        console.log([...manualDrawsSolutions]);
+        //console.log("manualDrawSolutions:");
+        //console.log([...manualDrawsSolutions]);
     }else{
         failedInSomeInitRequest = true;
-    }
-}
-
-function getUserDataFromSessionStorage(){
-    try{
-        userData = {
-            "id": sessionStorage.getItem("userId"),
-            "isAdmin": sessionStorage.getItem("userIsAdmin"),
-            "name": sessionStorage.getItem("userName"),
-            "whatsappNumber": sessionStorage.getItem("userWhatsappNumber")
-        }
-    }catch(error){
-        showModal(msgTitle, generateHtmlErrorMsgWhileGetDataFromSessionStorage(error.message), true, "OK", goToHomePage, false);
-    }
-
-}
-
-function generateHtmlErrorMsgWhileGetDataFromSessionStorage(errorMsg){
-    return `<p>Ocorreu um erro ao tentar obter dados armazenados no navegador. 
-    Você será direcionado a página inicial.<br>Caso o problema persista, faça 
-    contato no Whatsapp do Joca. Nesse caso, informe também os seguintes detalhes 
-    técnicos, por favor:<br><br></p>` + errorMsg;
-}
-
-function getSweepsNameFromSessionStorage(){
-    try{
-        sweepsName = sessionStorage.getItem("fillingSweepstake");
-    }catch(error){
-        showModal(msgTitle, generateHtmlErrorMsgWhileGetDataFromSessionStorage(error.message), true, "OK", goToHomePage, false);
     }
 }
 
@@ -208,8 +180,8 @@ async function getMatchesOfGroupsStage() {
         handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
         matchesData = handleReturn.response.body;
         hideModal();
-        console.log("MatchesData:");
-        console.log([...matchesData]);
+        //console.log("MatchesData:");
+        //console.log([...matchesData]);
     }else{
         failedInSomeInitRequest = true;
     }
@@ -233,23 +205,11 @@ async function getSavedPredictData(){
             predictData = [];
         }
         hideModal();
-        console.log("PredictData:");
-        console.log([...predictData]);
+        //console.log("PredictData:");
+        //console.log([...predictData]);
     }else{
         failedInSomeInitRequest = true;
     }
-}
-
-function showInstructionMsg(){
-    showModal(msgTitle + " - Instruções", getInstructionsMsgHtmlContent(), true, "OK", null, false);
-}
-
-function getInstructionsMsgHtmlContent(){
-    return `
-    <p>
-    Para correto preenchimento do bolão ` + sweepsName + `
-    </p>
-    `;
 }
 
 function showSavedPredictDataInInputFields(){
@@ -265,9 +225,28 @@ function showSavedPredictDataInInputFields(){
     }
 }
 
-function addSweepsNameInPageHeader(){
-    let selectedSweepsName = document.getElementById("selectedSweepsName");
-    selectedSweepsName.textContent = String(sweepsName).toUpperCase() + " - " + selectedSweepsName.textContent;
+function showManualDrawSolutionsSaved(){
+    let currentGroupLetterCode;
+    let currentGroupLetter;
+    let currentGroupSavedDraws;
+    let currentDrawResolutionDetails;
+
+    for(let i=0;i<TOTAL_GROUPS;i++){
+        currentGroupLetterCode = ASCII_CHAR_A_DECIMAL_CODE + i;
+        currentGroupLetter = String.fromCharCode(currentGroupLetterCode);
+        currentGroupSavedDraws = getAllCurrentValidManualDrawSolutionByGroup(currentGroupLetter);
+        if(currentGroupSavedDraws.length === 0){
+            continue;
+        }
+
+        currentDrawResolutionDetails = document.getElementsByName("drawResolutionDetails")[i];
+        currentDrawResolutionDetails.textContent = "Seleções Desempatadas pelo Participante:";
+        for(let j = 0;j<currentGroupSavedDraws.length;j++){
+            currentDrawResolutionDetails.innerHTML += `
+            <br>-${currentGroupSavedDraws[j].team_name}
+            `;
+        }
+    }
 }
 
 function handleChangeInInputFieldValue(event){
@@ -281,7 +260,7 @@ function handleChangeInInputFieldValue(event){
     document.getElementById(inputTriggedEventId);
 
     //Check if score really change:
-    console.log("RETORNO DA TEAM SCORE REALLY CHANGE: " + teamScoreReallyChange(groupMatchId, inputTeam1.value, inputTeam2.value));
+    //console.log("RETORNO DA TEAM SCORE REALLY CHANGE: " + teamScoreReallyChange(groupMatchId, inputTeam1.value, inputTeam2.value));
     if(!teamScoreReallyChange(groupMatchId, inputTeam1.value, inputTeam2.value)){
         return;
     }
@@ -298,7 +277,7 @@ function handleChangeInInputFieldValue(event){
         }
     }
     if(groupDrawsCount > 0){
-        console.log("Partida alterada de grupo com desempate manual");
+        //console.log("Partida alterada de grupo com desempate manual");
         updateDrawsUIOfGroups();
     }
 
@@ -346,8 +325,8 @@ function handleChangeInInputFieldValue(event){
         predictDataPendingToSave.push(predictData.at(predictData.length - 1));
     }
 
-    console.log([...predictData]);
-    console.log([...predictDataPendingToSave]);
+    //console.log([...predictData]);
+    //console.log([...predictDataPendingToSave]);
 }
 
 function teamScoreReallyChange(groupMatchId, scoreTeam1, scoreTeam2){
@@ -366,17 +345,6 @@ function getGroupLetterByGroupMatchId(groupMatchId){
     return matchesData.find(m => m.id === groupMatchId).group_letter_1;
 }
 
-function normalizeScoreTeamInput(htmlInputElement){
-    //Remove all caracteres that is not a 0-9:
-    htmlInputElement.value = htmlInputElement.value.replace(/\D/g, '');
-}
-
-function defineEventsInHeaderButtons(){
-    document.getElementById("save-data").addEventListener("click", saveData);
-    document.getElementById("show-instructions").addEventListener("click", showInstructionMsg);
-    document.getElementById("go-to-knockout-stage").addEventListener("click", prepareKnockoutStage);
-}
-
 async function saveData() {
 
     //Check if there is some match partiality filled:
@@ -385,13 +353,13 @@ async function saveData() {
     const checkInvalidFilledMatchesResult = checkInvalidFilledMatches();
 
     if(checkPartialFilledMatchesResult.total > 0 || checkInvalidFilledMatchesResult.total > 0){
-        showReviewMatchesMsg(checkPartialFilledMatchesResult, checkInvalidFilledMatchesResult);
+        showReviewMatchesMsg(msgTitle, checkPartialFilledMatchesResult, checkInvalidFilledMatchesResult);
         return;        
     }
 
     if(predictDataPendingToSave.length === 0){
         //Atualizando status para informar que todos os dados estão salvos:
-        updateSaveStatus("", true);
+        updateSaveStatus(secundaryStatusHtmlElement, "", true);
         defineMainElementMarginTop();
         return;
     }
@@ -424,7 +392,7 @@ async function makeSaveDataRequest(isNecessaryReloadPage=false){
 async function runOtherFunctionsAfterSaveData(isNecessaryReloadPage=false){
     hideModal();
     //Atualizando data e hora de realização do save:
-    updateSaveStatus();
+    updateSaveStatus(secundaryStatusHtmlElement);
     defineMainElementMarginTop();
     //Tratando possíveis soluções manuais relacionadas aos grupos que tiveram dados de predições salvos:
     await handleManualDrawSolutionsAfterSaveNewPredictData();
@@ -441,12 +409,13 @@ async function runOtherFunctionsAfterSaveData(isNecessaryReloadPage=false){
         updateGroupTablesData();
         updateDrawsUIOfGroups();
         updateHtmlTables();
+        updateTotalFilledMatchesStatus(predictData.length);
     }
 
 }
 
 function updateTotalFilledMatchesStatus(addValueToTotal){
-    totalFilledMatches+=addValueToTotal;
+    totalFilledMatches=addValueToTotal;
     document.getElementById("filledMatchesStatus").textContent = totalFilledMatches + " de 72 jogos preenchidos";
     handleGotoKnockoutStageButton();
 }   
@@ -502,9 +471,9 @@ function defineAllGroupsThatWillBeNecessaryTurnNotMoreValidAllManualDrawSolution
 
 async function handleManualDrawSolutionsAfterSaveNewPredictData(){
     defineAllGroupsThatWillBeNecessaryTurnNotMoreValidAllManualDrawSolutions();
-    console.log("ENTROU NA handleManualDrawSolutionsAfterSaveNewPredictData");
+    //console.log("ENTROU NA handleManualDrawSolutionsAfterSaveNewPredictData");
     if(pedingGroupsToTurnNotMoreValidAllManualDrawSolutions.length === 0){
-        console.log("ENTROU NO IF DA handleManualDrawSolutionsAfterSaveNewPredictData");
+        //console.log("ENTROU NO IF DA handleManualDrawSolutionsAfterSaveNewPredictData");
         return;
     }
     //Realizando requisição para deletar TODAS as soloções de desempate manual de cada grupo
@@ -535,92 +504,8 @@ function clearTeamDraw(){
     teamsDraws.length = 0;
 }
 
-function updateSaveStatus(specificStatus="", onlyInformThatDontHavePendingDataToSave=false){
-    if(!onlyInformThatDontHavePendingDataToSave){
-        if(specificStatus === ""){
-            secundaryStatusHtmlElement.textContent = "Dados salvos em " + new Date().toLocaleString();
-        }else{
-            secundaryStatusHtmlElement.textContent = specificStatus;
-        }
-    }else{
-        secundaryStatusHtmlElement.textContent = "Todos os dados estão salvos. :)";
-    }
-}
-
 function showStatusOf(){
     secundaryStatusHtmlElement.textContent = "Dados salvos em " + new Date().toLocaleString();
-}
-
-function checkPartialFilledMatches(){
-    let matches = document.getElementsByName("match");
-    let isInputTeam1Empty;
-    let isInputTeam2Empty;
-    let countPartialFilledMatches = 0;
-    let partialFilledmatches = "";
-    for(let i =0;i < matches.length;i++){
-        isInputTeam1Empty = matches[i].children[1].children[1].value === '';
-        isInputTeam2Empty = matches[i].children[2].children[1].value === '';        
-        if((isInputTeam1Empty && !isInputTeam2Empty) || (!isInputTeam1Empty && isInputTeam2Empty)){
-            countPartialFilledMatches++;
-            partialFilledmatches += "<br>-" + matches[i].children[1].children[0].textContent + " x " + matches[i].children[2].children[0].textContent;
-            if(isInputTeam1Empty) matches[i].children[1].children[1].classList.add("app-alert-field");
-            if(isInputTeam2Empty) matches[i].children[2].children[1].classList.add("app-alert-field");
-        }
-    }
-    return {"total": countPartialFilledMatches, "matches": partialFilledmatches};
-}
-
-function checkInvalidFilledMatches(){
-    let matches = document.getElementsByName("match");
-    let isInputTeam1Invalid;
-    let isInputTeam2Invalid;
-    let countInvalidFilledMatches = 0;
-    let invalidFilledmatches = "";
-    for(let i =0;i < matches.length;i++){
-        isInputTeam1Invalid = Number(matches[i].children[1].children[1].value) < 0;
-        isInputTeam2Invalid = Number(matches[i].children[2].children[1].value) < 0;        
-        if(isInputTeam1Invalid || isInputTeam2Invalid){
-            countInvalidFilledMatches++;
-            invalidFilledmatches += "<br>-" + matches[i].children[1].children[0].textContent + " x " + matches[i].children[2].children[0].textContent;
-        }
-    }
-    return {"total": countInvalidFilledMatches, "matches": invalidFilledmatches};
-}
-
-function showReviewMatchesMsg(checkPartialFilledMatchesResult, checkInvalidFilledMatchesResult){
-
-    let htmlContentMsg = "<p><strong>Antes de salvar, identificamos partidas que precisam ser revisadas:</strong></p>";
-    console.log(checkPartialFilledMatchesResult.matches);
-    if(checkPartialFilledMatchesResult.total > 0){
-        if(checkPartialFilledMatchesResult.total === 1){
-            htmlContentMsg += "<p><strong>Partida Parcialmente Preenchida:</strong>";
-            htmlContentMsg += checkPartialFilledMatchesResult.matches +
-            `<br><br>É necessário preencher o placar para ambas as seleções dessa partida antes de 
-            salvar.</p><p class="app-red-txt">Destacamos a borda do campo em vermelho!</p>`;
-        }else{
-            htmlContentMsg += "<p><strong>Partidas Parcialmente Preenchidas (" + checkPartialFilledMatchesResult.total + "):</strong>";
-            htmlContentMsg += checkPartialFilledMatchesResult.matches +
-            `<br><br>É necessário preencher o placar para ambas as seleções dessas partidas antes de 
-            salvar.</p><p class="app-red-txt">Destacamos a borda desses campos em vermelho!</p>`;
-        }
-    }
-
-    if(checkInvalidFilledMatchesResult.total > 0){
-
-        if(checkInvalidFilledMatchesResult.total === 1){
-            htmlContentMsg += "<p><strong>Partida com Placar Inválido:</strong>";
-            htmlContentMsg += checkInvalidFilledMatchesResult.matches +
-            `<br><br>É necessário corrigir o placar dessa partida antes de 
-            salvar.</p><p class="app-red-txt">Destacamos a borda desse campo em vermelho!</p>`;
-        }else{
-            htmlContentMsg += "<p><strong>Partidas com Placar Inválido (" + checkInvalidFilledMatchesResult.total + "):</strong>";
-            htmlContentMsg +=  checkInvalidFilledMatchesResult.matches +
-            `<br><br>É necessário corrigir o placar dessas partidas antes de 
-            salvar.</p><p class="app-red-txt">Destacamos a borda desses campos em vermelho!</p>`;
-        }
-    }
-
-    showModal(msgTitle + " - Revisar Partidas", htmlContentMsg, true, "OK", null, false);
 }
 
 function createGroupTablesData(){
@@ -712,8 +597,8 @@ function updateGroupTablesData(){
         for(let j = 0;j<4;j++){
             currentTeamName = groupTablesData[i][j].team;
             teamStatistics = returnUpdateTeamStatistics(currentTeamName);
-            //console.log("Estatísticas: da selecao " + currentTeamName);
-            //console.log(teamStatistics);
+            ////console.log("Estatísticas: da selecao " + currentTeamName);
+            ////console.log(teamStatistics);
             groupTablesData[i][j].pt = teamStatistics.pt;
             groupTablesData[i][j].gs = teamStatistics.gs;
             groupTablesData[i][j].gr = teamStatistics.gr;
@@ -762,8 +647,8 @@ function updateDrawsUIOfGroups(){
         htmlGroupElementSolveDrawBtn1 = document.getElementsByName("drawBtn1")[htmlGroupElementsIndex];
         htmlGroupElementSolveDrawBtn2 = document.getElementsByName("drawBtn2")[htmlGroupElementsIndex];
         
-        console.log("ABC:");
-        console.log(currentGroupDraws);
+        //console.log("ABC:");
+        //console.log(currentGroupDraws);
         if(currentGroupDraws.length === 0){
             //Hidde draw alert and buttons:
             htmlGroupElementAlert.classList.add("d-none");
@@ -869,30 +754,9 @@ async function saveManualDrawSolution(groupLetter, firstPlaceToDefine, lastPlace
         //Recarregando página para que função init() seja executada, atualizando UI e 
         // obtendo soluções de desempate salvas no banco:
         location.reload();
-        console.log(teamsDraws);
+        //console.log(teamsDraws);
     }
 
-}
-
-function defineLoadPageEvents(){
-    addEventListener("beforeunload", () => {
-        sessionStorage.setItem("saveStatusBeforeLoadPage", getSaveStatus())
-        sessionStorage.setItem('yScrollBeforeReLoadPage', window.scrollY);
-    })
-    addEventListener("load", () => {
-        const yScroll = sessionStorage.getItem('yScrollBeforeReLoadPage');
-        const saveStatus = sessionStorage.getItem('saveStatusBeforeLoadPage');
-        if (yScroll) {
-            window.scrollTo(0, Number(yScroll));
-        }
-        if (saveStatus) {
-            updateSaveStatus(saveStatus, false);
-        }
-    });
-}
-
-function getSaveStatus(){
-    return document.getElementById("secundaryStatus").textContent;
 }
 
 function checkManualDrawSolutionPlaceDefinied(dropdowns){
@@ -952,7 +816,7 @@ async function generateHtmlContentModalOfManualDrawSolution(firstPlaceToDefine, 
     `;
     let totalPlacesToDefine = lastPlaceToDefine - firstPlaceToDefine + 1;
 
-    console.log(strPlacesToDefine);
+    //console.log(strPlacesToDefine);
     for(let i=0;i<totalPlacesToDefine;i++){
         currentDrawTeamSolveHtml = drawTeamSolveHtml;
         currentDropdownId = "dropdown-" + (i+1);
@@ -997,7 +861,7 @@ function configDropdownsOfManualDrawSolutionModal(groupDrawRowsTableData, firstP
 
 function configTeamNamesOfManualDrawSolutionModal(groupDrawRowsTableData){
     let teamNamesHtmlElements = document.getElementsByName("teamName");
-    console.log(groupDrawRowsTableData);
+    //console.log(groupDrawRowsTableData);
     for(let i=0;i<groupDrawRowsTableData.length;i++){
         teamNamesHtmlElements[i].textContent = groupDrawRowsTableData[i].team + ":";
     }
@@ -1024,12 +888,12 @@ function handleTeamGroupsPlaces(groupTableDataIndex){
 
     let groupTableData = groupTablesData[groupTableDataIndex];
     let firstPlaceToDefine;
-    console.log("Grupo com todas partidas preenchidas: " + groupTableData[0].group);
+    //console.log("Grupo com todas partidas preenchidas: " + groupTableData[0].group);
     //Atribuindo possíveis soluções manuais de empates:
     groupTablesData[groupTableDataIndex] = assignManualDrawsSolutionsInGroupPlaces(groupTableData);
     //Obtendo qual a primeira colocação que precisa de definição, já que o usuário pode ter desempatado colocações:
     firstPlaceToDefine = getFirstPlaceToDefine(groupTableData);
-    console.log("FirstPlaceToDefine do Grupo " + groupTableData[0].group + ": " + firstPlaceToDefine);
+    //console.log("FirstPlaceToDefine do Grupo " + groupTableData[0].group + ": " + firstPlaceToDefine);
     if(firstPlaceToDefine === -1){
         //Nesse caso, usuário desempatou todas as 4 colocações, não sendo necessário defini-las.
         groupTablesData[groupTableDataIndex] = sortTeamGroupByColumn(groupTableData, [{attribute:"place", order:"asc"}]);
@@ -1068,7 +932,7 @@ function assignManualDrawsSolutionsInGroupPlaces(groupTableData){
         //Check if there is a manual draw solution for this team:
         currentManualDrawSolution = getManualDrawSolution(groupLetter, groupTableData[i].team);
         if(currentManualDrawSolution !== null){
-            console.log("ATRIBUIDA SOLUCAO MANUAL PARA COLOCACAO: " + currentManualDrawSolution.place + " DO GRUPO " + groupTableData[0].group);
+            //console.log("ATRIBUIDA SOLUCAO MANUAL PARA COLOCACAO: " + currentManualDrawSolution.place + " DO GRUPO " + groupTableData[0].group);
             groupTableData[i].place = currentManualDrawSolution.place;
             groupTableData[i].isPlaceDefinedByUser = true;
         }
@@ -1105,8 +969,8 @@ function defineTeamGroupsPlaces(groupTableDataOrDrawTable, attributeReference="p
         lastTeamPlace = groupTableDataOrDrawTable[i].place;
         attributeRefValueOfLastTeam = groupTableDataOrDrawTable[i][attributeReference];
     }
-    console.log("Colocacoes iniciais:");
-    console.log([...groupTableDataOrDrawTable]);
+    //console.log("Colocacoes iniciais:");
+    //console.log([...groupTableDataOrDrawTable]);
 
     return groupTableDataOrDrawTable;
 }
@@ -1119,6 +983,17 @@ function getManualDrawSolution(groupLetter, teamName){
         }
     }
     return null;
+}
+
+function getAllCurrentValidManualDrawSolutionByGroup(groupLetter){
+    let allManualDrawsSolGroup = [];
+    for(let i=0;i<manualDrawsSolutions.length;i++){
+        if(manualDrawsSolutions[i].group_letter === groupLetter && 
+            manualDrawsSolutions[i].is_not_more_valid === 0){
+            allManualDrawsSolGroup.push(manualDrawsSolutions[i]);
+        }
+    }
+    return allManualDrawsSolGroup;
 }
 
 function checkPossibleDraws(groupTableDataIndex){
@@ -1135,7 +1010,7 @@ function checkPossibleDraws(groupTableDataIndex){
             }
         }
         if(placesCount > 1){
-            console.log("Empate detectado");
+            //console.log("Empate detectado");
             handleDraws(groupTableDataIndex, place, teams);
         }
     }
@@ -1166,26 +1041,26 @@ function handleDraws(groupTableDataIndex, place, teams){
     let totalDrawTeamsAfterGoalsDiffCriteriaApplied;
     let totalDrawTeamsAfterGoalsScoredCriteriaApplied;
 
-    console.log("Draw Table - Antes do loop:");
-    console.log([...drawTable]);
+    //console.log("Draw Table - Antes do loop:");
+    //console.log([...drawTable]);
 
     for(let i =0;i<teams.length;i++){
         teamGroupDataIndex = groupTableData.findIndex(g => g.team === teams[i]);
-        console.log("aaa: " +place);
+        //console.log("aaa: " +place);
         drawTable.push({"group": groupLetter, "place": place, "team": teams[i], 
             "pt": getTotalTeamPtsBetweenSpecificTeams(teams[i], teams),
             "gd": groupTableData[teamGroupDataIndex].gd,
             "gs": groupTableData[teamGroupDataIndex].gs});
     }
 
-    console.log("Draw Table Depois do Lopp:");
-    console.log([...drawTable]);
+    //console.log("Draw Table Depois do Lopp:");
+    //console.log([...drawTable]);
     //Define places by total of points between draw teams and check if draw persist:
     drawTable = defineTeamGroupsPlaces(drawTable, "pt", place, false);
-    console.log([...drawTable]);
+    //console.log([...drawTable]);
     totalDrawTeamsAfterDirectMatchesCriteriaApplied = totalOfDrawInGroupTableDataByPlace(drawTable, place);
     if(totalDrawTeamsAfterDirectMatchesCriteriaApplied === 0){
-        console.log("Empate resolvido por pts");
+        //console.log("Empate resolvido por pts");
         teamsDraws[teamsDraws.length - 1].status = DRAW_SOLUTION_STATUS.automaticSolutionWorked;
         applyAutomaticDrawSolution(groupTableDataIndex, drawTable);
         return;
@@ -1195,7 +1070,7 @@ function handleDraws(groupTableDataIndex, place, teams){
     drawTable = defineTeamGroupsPlaces(drawTable, "gd", place, false);
     totalDrawTeamsAfterGoalsDiffCriteriaApplied = totalOfDrawInGroupTableDataByPlace(drawTable, place);          
     if(totalDrawTeamsAfterGoalsDiffCriteriaApplied === 0){
-        console.log("Empate resolvido por saldo gols");
+        //console.log("Empate resolvido por saldo gols");
         teamsDraws[teamsDraws.length - 1].status = DRAW_SOLUTION_STATUS.automaticSolutionWorked;
         applyAutomaticDrawSolution(groupTableDataIndex, drawTable);
         return;
@@ -1205,32 +1080,32 @@ function handleDraws(groupTableDataIndex, place, teams){
     drawTable = defineTeamGroupsPlaces(drawTable, "gs", place, false);
     totalDrawTeamsAfterGoalsScoredCriteriaApplied = totalOfDrawInGroupTableDataByPlace(drawTable, place);
     if(totalDrawTeamsAfterGoalsScoredCriteriaApplied === 0){
-        console.log("Empate resolvido por gols pró");
+        //console.log("Empate resolvido por gols pró");
         teamsDraws[teamsDraws.length - 1].status = DRAW_SOLUTION_STATUS.automaticSolutionWorked;
         applyAutomaticDrawSolution(groupTableDataIndex, drawTable);
         return;
     }
     
-    console.log("Empate não resolvido");
+    //console.log("Empate não resolvido");
     //Indicating that a manual tiebreaker is necessary:
     teamsDraws[teamsDraws.length - 1].status = DRAW_SOLUTION_STATUS.automaticSolutionFailed;
-    console.log([...teamsDraws]);
+    //console.log([...teamsDraws]);
 
     //Check if some automatic solution try reduce total of draw teams:
     if(totalDrawTeamsAfterDirectMatchesCriteriaApplied < teams.length){
         drawTable = defineTeamGroupsPlaces(drawTable, "pt", place, false);
         applyAutomaticDrawSolution(groupTableDataIndex, drawTable);
-        console.log("Empate reduzido por direct matches");
+        //console.log("Empate reduzido por direct matches");
     }else{
         if(totalDrawTeamsAfterGoalsDiffCriteriaApplied < teams.length){
 
             drawTable = defineTeamGroupsPlaces(drawTable, "gd", place, false);
             applyAutomaticDrawSolution(groupTableDataIndex, drawTable);
-            console.log("Empate reduzido por gd");            
+            //console.log("Empate reduzido por gd");            
         }else{
             drawTable = defineTeamGroupsPlaces(drawTable, "gs", place, false);
             applyAutomaticDrawSolution(groupTableDataIndex, drawTable);
-            console.log("Empate reduzido por gs");              
+            //console.log("Empate reduzido por gs");              
         }
     }
 
@@ -1239,11 +1114,11 @@ function handleDraws(groupTableDataIndex, place, teams){
 function applyAutomaticDrawSolution(groupTableDataIndex, drawTable){
     let groupTableData = groupTablesData[groupTableDataIndex];
     let currentTeam;
-    console.log("Applicação da solução:");
+    //console.log("Applicação da solução:");
     for(let i=0;i<drawTable.length;i++){
-        console.log("Iteracao " + (i+1));
-        console.log("Place in drawtable i: " + drawTable[i].place);
-        console.log("Time in drawtable i: " + drawTable[i].team);
+        //console.log("Iteracao " + (i+1));
+        //console.log("Place in drawtable i: " + drawTable[i].place);
+        //console.log("Time in drawtable i: " + drawTable[i].team);
         groupTableData.find(g => g.team === drawTable[i].team).place = drawTable[i].place;
     }
 
@@ -1254,7 +1129,7 @@ function applyAutomaticDrawSolution(groupTableDataIndex, drawTable){
 }
 
 function totalOfDrawInGroupTableDataByPlace(groupTableDataOrDrawTable, place){
-    console.log("Place para analisar: " + place);
+    //console.log("Place para analisar: " + place);
     let placesCount=0;
     for(let i=0;i<groupTableDataOrDrawTable.length;i++){
         if(groupTableDataOrDrawTable[i].place === place){
@@ -1262,7 +1137,7 @@ function totalOfDrawInGroupTableDataByPlace(groupTableDataOrDrawTable, place){
         }
     }
 
-    console.log(placesCount);
+    //console.log(placesCount);
     if(placesCount <= 1){ //If <=1, there isn't draw
         return 0;
     }else{
@@ -1276,16 +1151,16 @@ function getTotalTeamPtsBetweenSpecificTeams(referenceTeam, teams){
     let currentMatchResult;
     let matchData;
     
-    console.log("getTotalTeamPtsBetweenSpecificTeams: referenceTeam=" + referenceTeam + "   teams=" + teams);
+    //console.log("getTotalTeamPtsBetweenSpecificTeams: referenceTeam=" + referenceTeam + "   teams=" + teams);
     for(let i=0;i<predictData.length;i++){
         referenceTeamNumber = matchOfTeamNumber(predictData[i].group_match_id, referenceTeam);
-        console.log("referenceTeamNumber: " + referenceTeamNumber + "   group_match_id: " + predictData[i].group_match_id);
+        //console.log("referenceTeamNumber: " + referenceTeamNumber + "   group_match_id: " + predictData[i].group_match_id);
 
         if(referenceTeamNumber !== -1){
 
             matchData = matchesData.find(m => m.id === predictData[i].group_match_id);
-          console.log("Match Data:");
-            console.log(matchData);
+          //console.log("Match Data:");
+            //console.log(matchData);
             if((matchData.team_name_1 !== referenceTeam && teams.includes(matchData.team_name_1)) || 
             (matchData.team_name_2 !== referenceTeam && teams.includes(matchData.team_name_2))){
                 currentMatchResult = getResultOfTeamInMatchPrediction(i, referenceTeamNumber==1);
@@ -1442,6 +1317,12 @@ function prepareKnockoutStage(){
     while(thirdPlacesDefinedKnockoutMatches.length < 8 && thirdTableDataIndex < thirdPlacesTablesData.length && 
         !isUserDefiningThirdPlacesToKnockoutMatches){
         placesResult = defineThirdPlaceTablePlaces(thirdPlacesTablesData[thirdTableDataIndex]);
+        //console.log("thirdTableDataIndex: " + thirdTableDataIndex);
+        if(thirdPlacesTablesData[thirdTableDataIndex].length === 0){
+            //In this case, third table data matrix have all teams selected to knockout matches.
+            thirdTableDataIndex++;
+            continue;
+        }
         if(!isThirdPlaceTeamDefinedByKnockoutMatchNumber(thirdPlacesTablesData[thirdTableDataIndex][0].knockoutMatchNumber)){
             if(placesResult.occurredFirstPlaceDraw){
                 //In this case, user need to define which team will be format the knockout match:
@@ -1457,10 +1338,17 @@ function prepareKnockoutStage(){
         }
         thirdTableDataIndex++;
     }
-    console.log("SAIU DO LOOOP");
-    console.log(thirdPlacesDefinedKnockoutMatches);
+    //console.log("SAIU DO LOOOP");
+    //console.log(thirdPlacesDefinedKnockoutMatches);
     if(thirdPlacesDefinedKnockoutMatches.length === 8){
-        definedFirstKnockoutStageTeamsMatches();
+        //Solicitando confirmação de ida para fase mata-mata e avisando 
+        // usuário sobre impossibilidade de alterar a fase de grupos ao 
+        // ir para a fase mata-mata:
+        showModal(msgTitle + " - Confirmação Ida Fase Mata-Mata", 
+            `<p>Tudo pronto para que você vá para a fase Mata-mata!<br><strong>Ao prosseguir, 
+            não será mais possível alterar a fase de grupos.</strong> Deseja continuar?</p>`,
+        true, "SIM, IR PARA FASE MATA-MATA", definedFirstKnockoutStageTeamsMatches, 
+        true, "NÃO, FICAR NA FASE DE GRUPOS", restoreKnockoutStagePrepareData);
     }
 }
 
@@ -1475,9 +1363,11 @@ async function definedFirstKnockoutStageTeamsMatches(){
         handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
         handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
         firstKnockoutStageMatchTeamsRules = handleReturn.response.body;
+        console.log("matchesRules:");
+        console.log(firstKnockoutStageMatchTeamsRules);
         hideModal();
-        console.log("firstKnockoutStageMatchTeamsRules:");
-        console.log([...firstKnockoutStageMatchTeamsRules]);
+        //console.log("firstKnockoutStageMatchTeamsRules:");
+        //console.log([...firstKnockoutStageMatchTeamsRules]);
     }
 
     //Definindo dados das partidas da fase 32-avos:
@@ -1498,7 +1388,7 @@ async function definedFirstKnockoutStageTeamsMatches(){
         }else{
             currentTeam2 = getTeamNameOfGroupByPlace(currentParsedRule.teamGroups, currentParsedRule.teamGroupPlace);
         }
-        firstStageKnockoutDefinedMatches.push({"team_1": currentTeam1, "team_2": currentTeam2, 
+        firstStageKnockoutDefinedMatches.push({"team_1_name": currentTeam1, "team_2_name": currentTeam2, 
             "match_number": firstKnockoutStageMatchTeamsRules[i].match_number});
     }
 
@@ -1514,16 +1404,31 @@ async function definedFirstKnockoutStageTeamsMatches(){
         handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
         handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
         hideModal();
-        //TODO: ir para página mata-mata
+
+        //Armazenando USERS_KNOCKOUT_STAGES_STATUS da primeira fase mata-mata, com is_all_filled false,
+        //apenas para que seja possível identificar se o usuário já foi ou não para a fase mata-mata:
+        handleReturn = await handleRequest(() => makeRequest(`/predictions/knockoutStage/filledStatus`, 
+            "POST", JSON.stringify({
+                "userIdInSweepestake": sessionStorage.getItem("userIdInSweepestake"), 
+                "knockoutStageName": firstKnockoutStageName, 
+                "isAllFilled": 0
+            }), true), null, false, ()=>{throw new Error();}, true, msgTitle);
+         
+        if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+            handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+            handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+            hideModal(); 
+            goToPage(PAGE_CONFIGS.PG_KNOCKOUT_STAGES_MATCHES_PREDICT);
+        }     
     }
 
 }
 
 function getTeamNameOfGroupByPlace(groupLetter, teamPlace){
-    console.log(groupLetter);
-    console.log(teamPlace);
+    //console.log(groupLetter);
+    //console.log(teamPlace);
     let groupTableSDataIndex = String(groupLetter).charCodeAt() - ASCII_CHAR_A_DECIMAL_CODE;
-    console.log(groupTableSDataIndex);
+    //console.log(groupTableSDataIndex);
     return groupTablesData[groupTableSDataIndex].find(t => t.place === teamPlace).team;
 }
 
@@ -1559,8 +1464,8 @@ function removeOfThirdPlaceTablesDataAllOccurrenceOfLastDefinedKnockoutMatchesTe
         
     }
 
-    console.log("THIRD PLACES DATA AFETER DELETES:");
-    console.log(thirdPlacesTablesData);
+    //console.log("THIRD PLACES DATA AFETER DELETES:");
+    //console.log(thirdPlacesTablesData);
 
     return thirdPlacesTablesData;
 
@@ -1594,12 +1499,21 @@ function storageDefinedThirdPlaceTeamInKnockoutStageMatch(thirdTableDataIndex){
         }
     }
 
+    //Se chegamos aqui, significa que o usuário não marcou nenhuma checkbox:
+    //showNotChoosedThirdPlaceTeamWarningMsg();
+}
+
+function showNotChoosedThirdPlaceTeamWarningMsg(){
+    let warningMsg = document.getElementById("warning-msg");
+
+    warningMsg.classList.remove("d-none");
+    warningMsg.innerText = "Você não escolheu uma das seleções. Clique no nome da seleção desejada para escolhe-la.";
 }
 
 function restoreKnockoutStagePrepareData(){
     thirdPlacesTablesData.length = 0;
     thirdPlacesDefinedKnockoutMatches.length = 0;
-    console.log("EXEC RESTORE");
+    //console.log("EXEC RESTORE");
 }
 
 function generateHTMLChooseThirdPlaceToKnockoutMatchModal(thirdTableDataIndex){
@@ -1636,6 +1550,16 @@ function generateHTMLChooseThirdPlaceToKnockoutMatchModal(thirdTableDataIndex){
         }
     }
 
+    html+=`
+    <div class="row d-flex justify-content-center align-items-center">
+        <div class="col-12 text-start">
+            <p id="warning-msg" class="app-alert-txt-block app-top-separation d-none" style="width: 300px;">
+            </p>
+        </div>
+    </div>`;
+
+    html+='</div>';
+
     return html;
 }
 
@@ -1658,7 +1582,7 @@ function createThirdPlacesTablesData(){
     let knockoutMatchTeamNumber;    
 
     thirdPlacesData = getThirdPlacesDataFromGroupTablesData(["A", "B", "C", "D", "F"]);
-    console.log(thirdPlacesData);
+    //console.log(thirdPlacesData);
     knockoutMatchNumber = 74;
     knockoutMatchThirdPlaceRule = "A/B/C/D/F";
     
@@ -1671,7 +1595,7 @@ function createThirdPlacesTablesData(){
                 "gs": thirdPlacesData[i].gs, "gr": thirdPlacesData[i].gr, "gd": thirdPlacesData[i].gd }
         );
     }
-    console.log(thirdPlacesTable);
+    //console.log(thirdPlacesTable);
     thirdPlacesTablesData.push(thirdPlacesTable);
 
     thirdPlacesData = getThirdPlacesDataFromGroupTablesData(["C", "D", "F", "G", "H"]);
@@ -1786,8 +1710,8 @@ function createThirdPlacesTablesData(){
     }
     thirdPlacesTablesData.push(thirdPlacesTable);
 
-    console.log("Third Places Tables:");
-    console.log(thirdPlacesTablesData);
+    //console.log("Third Places Tables:");
+    //console.log(thirdPlacesTablesData);
 
 }
 
@@ -1837,4 +1761,67 @@ function defineThirdPlaceTablePlaces(thirdPlaceTable, attributesReference=["pt",
 
 
     return {"occurredFirstPlaceDraw": occuredFirstPlaceDraw, "thirdPlaceTable": thirdPlaceTable};
+}
+
+async function getAllKnockoutStagesFilledStatus(){
+
+    let userIdInSweepestake = sessionStorage.getItem("userIdInSweepestake");
+    console.log("userIdInSweepestake:");
+    console.log(userIdInSweepestake);
+    let handleReturn = await handleRequest(() => makeRequest(`/predictions/allKnockoutStages/filledStatus?userIdInSweepestake=${userIdInSweepestake}`, "GET"), 
+    null, false, ()=>{throw new Error();}, true, msgTitle);
+
+    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+            knockoutStagesFilledStatus = handleReturn.response.body;
+            if(Object.keys(knockoutStagesFilledStatus).length === 0){
+                knockoutStagesFilledStatus = [];
+            }
+            hideModal();
+    }else{
+        failedInSomeInitRequest = true;
+    }
+}
+
+async function checkIfUserCanAccessThisPage(){
+    const sweepsName = sessionStorage.getItem("fillingSweepstake");
+
+    //Verificando se o usuário pertence ao bolão:
+    let isUserInSweeps = await checkIfUserIsInSweeps(sweepsName);
+    if(isUserInSweeps === 0){
+        goToPage(PAGE_CONFIGS.PG_SWEEPS_NAME);
+        showModal(msgTitle, "Você está tentando acessar um bolão sem ser participante dele.", true, 
+            "OK", null, false);
+    }else{
+        await getAllKnockoutStagesFilledStatus();
+        if(knockoutStagesFilledStatus.length > 0){
+            console.log("ENTROU AQUI");
+            if(knockoutStagesFilledStatus.length < 6){
+                goToPage(PAGE_CONFIGS.PG_KNOCKOUT_STAGES_MATCHES_PREDICT);
+            }else{
+                goToPage(PAGE_CONFIGS.PG_SWEEPS_NAME);
+                showModal(msgTitle, "Você já preencheu todas as fases do bolão e, portanto, não pode acessá-las novamente.", true, 
+                "OK", null, false);
+            }
+        }
+    }
+}
+
+async function checkIfUserIsInSweeps(sweepsName){
+
+    let handleReturn = await handleRequest(() => makeRequest("/sweeps/users/verify", "POST", '{"sweepsName": \"' + 
+        sweepsName + '\"}', true), null, false, ()=>{throw new Error();}, true, msgTitle);
+
+    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+        return handleReturn.response.body.message;
+    }else{
+        failedInSomeInitRequest = true;
+    }
+
+    //Na prática esse retorno nunca será executado, pois caso haja
+    //  erro na requisição, o usuário será direcionado a página home:
+    return null;
 }

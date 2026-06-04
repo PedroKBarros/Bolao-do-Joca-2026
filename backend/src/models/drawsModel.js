@@ -53,5 +53,29 @@ async function setToNotMoreValidGroupStageDrawsManualSolutions(userIdInSweepesta
 
 }
 
+async function saveKnockoutStageDrawManualSolution(userIdInSweepestake, manualDrawSolution){
+  const sql = `update user_knockout_stage_predictions u
+               set team_1_chosen_by_user = ?,
+               team_2_chosen_by_user = ?
+               where u.match_number = ? and u.sweepstake_users_id = ?`;
 
-module.exports = { getGroupStageDrawsManualSolutions, saveGroupStageDrawsManualSolutions, setToNotMoreValidGroupStageDrawsManualSolutions };
+  await db_connection.execute(sql, [manualDrawSolution.team_1_chosen_by_user, 
+    manualDrawSolution.team_2_chosen_by_user, manualDrawSolution.match_number,
+    userIdInSweepestake]);
+}
+
+async function undoSavedKnockoutStageDrawManualSolution(userIdInSweepestake, matchesNumber){
+  const sql = `update user_knockout_stage_predictions u
+               set team_1_chosen_by_user = 0,
+               team_2_chosen_by_user = 0
+               where u.match_number = ? and u.sweepstake_users_id = ?`;
+
+  for(let i =0;i<matchesNumber.length;i++){
+    await db_connection.execute(sql, [matchesNumber[i], userIdInSweepestake]);
+  }
+}
+
+
+module.exports = { getGroupStageDrawsManualSolutions, saveGroupStageDrawsManualSolutions, 
+  setToNotMoreValidGroupStageDrawsManualSolutions, saveKnockoutStageDrawManualSolution,
+  undoSavedKnockoutStageDrawManualSolution };

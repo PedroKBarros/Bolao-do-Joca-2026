@@ -59,28 +59,11 @@ async function storageUserKnockoutStageMatches(knockoutStageName, userIdInSweepe
     `;
   
   for(let i =0;i<knockoutMatches.length;i++){
-    await db_connection.execute(sql, [userIdInSweepestake, knockoutMatches[i].team_1, 
-      knockoutMatches[i].team_2, knockoutMatches[i].match_number]);
+    await db_connection.execute(sql, [userIdInSweepestake, knockoutMatches[i].team_1_name, 
+      knockoutMatches[i].team_2_name, knockoutMatches[i].match_number]);
   }
   
 }
 
-async function getKnockoutUserMatchesByMatchNumberInterval(userIdInSweepestake, firstMatchNumber, lastMatchNumber){
-  const sql = `
-  select *
-  from user_knockout_stage_predictions u
-  where u.sweepstake_users_id = ? and u.match_number between ? and ?
-  order by u.match_number;
-    `;
-
-    const [rows] = await db_connection.execute(sql, [userIdInSweepestake, firstMatchNumber, lastMatchNumber]);
-    if(rows.length){
-      const result = rows;
-      return result;
-    }
-
-    return undefined; 
-}
-
 module.exports = { getGroupStageMatches, getKnockoutStageMatchesRules, 
-  getAllKnockoutStagesMatchesRules, storageUserKnockoutStageMatches, getKnockoutUserMatchesByMatchNumberInterval };
+  getAllKnockoutStagesMatchesRules, storageUserKnockoutStageMatches };

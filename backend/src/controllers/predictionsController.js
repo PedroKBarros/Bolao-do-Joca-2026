@@ -21,4 +21,44 @@ async function saveGroupStagePredictData(req, res) {
   }
 }
 
-module.exports = { getGroupStageMatchesPredictions, saveGroupStagePredictData };
+async function getFilledStatusOfAllKnockoutStages(req, res) {
+  try {
+    const { userIdInSweepestake } = req.query;
+    res.status(200).json(await predServ.getFilledStatusOfAllKnockoutStages(userIdInSweepestake));
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+async function getKnockoutStageMatchesPredictionsFromMatchesNumberInterval(req, res) {
+  try {
+    const { knockoutStageName, userIdInSweepestake } = req.query;
+    res.status(200).json(await predServ.getKnockoutStageMatchesPredictionsFromMatchesNumberInterval(knockoutStageName, userIdInSweepestake));
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+async function saveKnockoutStagePredictData(req, res) {
+  try {
+    const { userIdInSweepestake, predictDataToSave } = req.body;
+    await predServ.saveKnockoutStagePredictData(userIdInSweepestake, predictDataToSave);
+    res.status(200).json({ message: "Dados de predições salvos com sucesso!" });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+}
+
+async function registerKnockoutStageFilledStatus(req, res){
+  try {
+    const { userIdInSweepestake, knockoutStageName, isAllFilled } = req.body;
+    await predServ.registerKnockoutStageFilledStatus(userIdInSweepestake, knockoutStageName, isAllFilled);
+    res.status(200).json({ message: "Status de fase mata-mata registrado com sucesso!" });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }  
+}
+
+module.exports = { getGroupStageMatchesPredictions, saveGroupStagePredictData, getFilledStatusOfAllKnockoutStages,
+  getKnockoutStageMatchesPredictionsFromMatchesNumberInterval, saveKnockoutStagePredictData,
+  registerKnockoutStageFilledStatus };

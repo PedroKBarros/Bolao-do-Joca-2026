@@ -1,6 +1,7 @@
 const e = require('express');
 const matchesModel = require('../models/matchesModel');
-const firstKnockoutStageInterval = {"firstMatchNumber": 74, "lastMatchNumber": 88};
+const predicModel = require('../models/predictionsModel');
+const predicService = require('../services/predictionsService');
 
 async function getGroupStageMatches() {
     let groupMatches = undefined;
@@ -51,12 +52,16 @@ async function defineKnockoutStageMatches(knockoutStageName, userIdInSweepestake
         throw new Error("Nenhuma partida da fase mata-mata " + knockoutStageName + " foi informada.");
     }
 
-    if(await matchesModel.getKnockoutUserMatchesByMatchNumberInterval(userIdInSweepestake, 
-        firstKnockoutStageInterval.firstMatchNumber, firstKnockoutStageInterval.lastMatchNumber)){
+    let knockoutStageConstData = predicService.getConstKnockoutStageDataFromKnockoutStageName(knockoutStageName);
+    console.log("knockoutStageConstData:");
+    console.log(knockoutStageConstData);
+    if(await predicModel.getKnockoutStageMatchesPredictionsFromMatchesNumberInterval(userIdInSweepestake, 
+        knockoutStageConstData.firstMatchNumber, knockoutStageConstData.lastMatchNumber)){
         throw new Error("Existem partidas da fase mata-mata " + knockoutStageName + " já armazenadas.");
     }
-
+    console.log("CHEGOU NA LINHA 60");
     await matchesModel.storageUserKnockoutStageMatches(knockoutStageName, userIdInSweepestake, knockoutMatches);   
+    console.log("CHEGOU NA LINHA 66");
 }
 
 module.exports = { getGroupStageMatches, getKnockoutStageMatchesRules, 

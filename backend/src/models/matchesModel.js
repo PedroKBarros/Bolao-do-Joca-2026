@@ -6,7 +6,7 @@ async function getGroupStageMatches(){
   select 
       g.id, g.group_letter_1, g.team_name_1, g.team_name_2, g.match_info
   from group_matches g
-  order by g.group_letter_1 asc;
+  order by g.group_letter_1 asc, g.match_info;
     `;
 
     const [rows] = await db_connection.execute(sql);

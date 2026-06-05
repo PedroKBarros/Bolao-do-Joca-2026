@@ -779,7 +779,7 @@ function getTeamMatchWinner(matchNumber){
     let matchData = matchesData.find(m => m.match_number === matchNumber);
 
     if(matchPredictData.score_team_1 === matchPredictData.score_team_2){
-        return manualDrawsSolutions.find(d => d.match_number === matchNumber).team_1_chosen_by_user === 1 ? matchData.team_1_name : matchData.team_2_name;
+        return manualDrawsSolutions.find(d => d.match_number === matchNumber).team_number === 1 ? matchData.team_1_name : matchData.team_2_name;
     }
     if(matchPredictData.score_team_1 > matchPredictData.score_team_2){
         return matchData.team_1_name;
@@ -793,7 +793,7 @@ function getTeamMatchLoser(matchNumber){
     let matchData = matchesData.find(m => m.match_number === matchNumber);
 
     if(matchPredictData.score_team_1 === matchPredictData.score_team_2){
-        return manualDrawsSolutions.find(d => d.match_number === matchNumber).team_1_chosen_by_user === 1 ? matchData.team_2_name : matchData.team_1_name;
+        return manualDrawsSolutions.find(d => d.match_number === matchNumber).team_number === 1 ? matchData.team_2_name : matchData.team_1_name;
     }
     if(matchPredictData.score_team_1 > matchPredictData.score_team_2){
         return matchData.team_2_name;

@@ -8,5 +8,7 @@ export function init(){
 function showFinishMsg(){
 
     let thaksHtmlElement = document.getElementById("thanksForUser");
-    thaksHtmlElement.innerHTML = `${sessionStorage.getItem("userName")}, suas respostas foram salvas com sucesso.<br>Agora vamos nos divertir!!!`;
+    thaksHtmlElement.innerHTML = `${sessionStorage.getItem("userName")}, suas respostas no bolão 
+    '${sessionStorage.getItem("fillingSweepstake")}' foram salvas com sucesso.<br>
+    Agora vamos nos divertir!!!`;
 }

@@ -377,10 +377,6 @@ button:hover {
 }
 
 .app-txt-dotted-box {
-    font-size: var(--app-small-texts-font-size);
-    font-weight: normal;
-    color: var(--app-obs-text-color);
-    background-color: var(--app-white);
     border-spacing: 0;
     border: 2px dotted #000000;
     border-radius: 10px;

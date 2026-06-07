@@ -675,7 +675,7 @@ async function handleNextButtonClick(){
         showModal(msgTitle + " - Finalizar Preenchimento do Bolão ", `
             <p>Ao clicar em 'CONFIRMAR' suas predições serão permanentemente armazenadas e 
             <strong>não será possível alterá-las posteriormente</strong>.</p>`, true, "CONFIRMAR", 
-            () => {registerFilledKnockoutStageStatus();;}, 
+            () => {registerFilledKnockoutStageStatus();goToPage(PAGE_CONFIGS.PG_FINISH_SWEEPSTAKE)}, 
             true, "CANCELAR");
         
         

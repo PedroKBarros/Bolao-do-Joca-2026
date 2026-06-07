@@ -78,6 +78,7 @@ export async function init(){
     defineEventsInHeaderButtons(saveData, () => {showInstructionMsg(msgTitle, false);}, handleNextButtonClick, "next-button");
     await defineCurrentKnockoutStageMatchesHtmlUi();
     showSavedPredictDataInInputFields();
+    showManualDrawSolutionsSaved();
 
     /* 
     * Limpando o array, pois como os campos já possuem evento, 
@@ -207,6 +208,7 @@ async function defineCurrentKnockoutStageMatchesHtmlUi(){
     matchHtml += `
         <div class="col-auto text-left">
             <button class="app-btn app-small-btn app-alert-btn-color app-small-height-separation d-none" name="drawBtn">DESEMPATAR</button>
+            <p class="app-small-txt-box app-small-txt app-green-txt app-small-height-separation d-none" name="drawDetail"></p>
         </div>
     </div>
     `;
@@ -338,7 +340,7 @@ function updateDrawsUIOfGroups(){
         htmlGroupElementSolveDrawBtn = document.getElementsByName("drawBtn")[i];        
         if(currentMatchDraw.length === 0){
             //Hidde draw button:
-            htmlGroupElementSolveDrawBtn.classList.add("d-none");            
+            htmlGroupElementSolveDrawBtn.classList.add("d-none");           
         }else{
             //Show button to solve draw:
             //Define btn id with match number:
@@ -898,5 +900,33 @@ async function checkIfUserIsInSweeps(sweepsName){
     //Na prática esse retorno nunca será executado, pois caso haja
     //  erro na requisição, o usuário será direcionado a página home:
     return null;
+}
+
+function showManualDrawSolutionsSaved(){
+    let totalOfMatches = document.getElementsByName("match").length;
+    let currentMatchSavedDraw;
+    let currentDrawResolutionDetails;
+
+    for(let i=0;i<totalOfMatches;i++){
+        currentMatchSavedDraw = manualDrawsSolutions.find(m => m.match_number === matchesData[i].match_number);
+        if(currentMatchSavedDraw === undefined){
+            continue;
+        }
+        currentDrawResolutionDetails = document.getElementsByName("drawDetail")[i];
+        currentDrawResolutionDetails.innerHTML = `Seleção definida vencedora pelo participante:<br>` + getTeamInManualDraw(currentMatchSavedDraw);
+        currentDrawResolutionDetails.classList.remove("d-none");
+    }
+}
+
+function getTeamInManualDraw(manualDraw){
+    let draw = manualDraw;
+    let match_number, team_number;
+    let matchData;
+
+    match_number = draw.match_number;
+    team_number = draw.team_number;
+    matchData = matchesData.find(m => m.match_number === match_number);
+
+    return team_number === 1 ? matchData.team_1_name : matchData.team_2_name;
 }
 

@@ -46,8 +46,9 @@ Possui 1 base de dados MySQL dedicada exclusivamente para os usuários finais da
 
 ## Procedimentos:
 
-### Procedimentos a Serem Executados entre 06h e 9h:
-* Proc 14
+### Procedimentos Recorrentes:
+* Proc 14 -> 1x / dia, entre 06h às 09h
+* Proc 2B -> 1x / semana, entre 00h e 05h
 
 ### Proc 1 - Conectar-se com o Servidor/VPS:
 Pré-condições:
@@ -82,8 +83,9 @@ Pré-condições:
 Observações: -
 
 Passos:
-1. **EXECUTAR:** ```sudo apt update && sudo apt upgrade -y```
-2. **EXECUTAR:** *Procedimento 2A*
+1. **EXECUTAR:** ```sudo apt update```
+2. **EXECUTAR:** ```sudo apt upgrade -y```
+3. **EXECUTAR:** *Procedimento 2A*
 
 ### Proc 2C - Ver Processos:
 Pré-condições:
@@ -275,10 +277,12 @@ Passos:
 
 ### Proc 14 - Checagem Matutina do Estado da VPS e da Aplicação:
 1. **EXECUTAR:** *Procedimento 3*
-2. **EXECUTAR:** *Procedimento 9*
-3. **EXECUTAR:** *Procedimento 11*
-5. **EXECUTAR:** acessar aplicação via browser (bjcmd.tech)
-6. **VERIFICAR:** frontend deve estar acessível
+2. **EXECUTAR:** *Procedimento 5*
+3. **EXECUTAR:** *Procedimento 7*
+4. **EXECUTAR:** *Procedimento 9*
+5. **EXECUTAR:** *Procedimento 11*
+6. **EXECUTAR:** acessar aplicação via browser (bjcmd.tech)
+7. **VERIFICAR:** frontend deve estar acessível
    
 ## Diferenças entre o ambiente de produção e o ambiente de desenvolvimento:
 

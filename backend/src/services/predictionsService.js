@@ -9,6 +9,14 @@ const KNOCKOUT_STAGES_DATA = [
     {"order": 6, "name":"Final", "firstMatchNumber": 104, "lastMatchNumber": 104}     
 ];
 
+function getConstKnockoutStageDataFromMatchNumber(matchNumber){
+    return KNOCKOUT_STAGES_DATA.find(k => k.firstMatchNumber <= matchNumber && k.lastMatchNumber >= matchNumber);
+}
+
+function getConstKnockoutStageDataFromOrder(order){
+    return KNOCKOUT_STAGES_DATA.find(k => k.order === order);
+}
+
 function getConstKnockoutStageDataFromKnockoutStageName(knockoutStageName){
     for(let i=0;i<KNOCKOUT_STAGES_DATA.length;i++){
         if(KNOCKOUT_STAGES_DATA[i].name === knockoutStageName){
@@ -95,6 +103,25 @@ async function getKnockoutStageMatchesPredictionsFromMatchesNumberInterval(knock
     return KnockoutStageMatchesPredictions;
 }
 
+async function getAllKnockoutStageMatchesPredictions(userIdInSweepestake){
+    if(userIdInSweepestake === undefined || userIdInSweepestake === null){
+        throw new Error("O id do usuário na tabela de usuários do bolão não foi informado.");        
+    }
+
+    if(String(userIdInSweepestake) === ""){
+        throw new Error("O id do usuário na tabela de usuários do bolão informado está vazio.");        
+    }
+    
+    let KnockoutStageMatchesPredictions = await predModel.getKnockoutStageMatchesPredictionsFromMatchesNumberInterval(userIdInSweepestake, 
+        KNOCKOUT_STAGES_DATA[0].firstMatchNumber, KNOCKOUT_STAGES_DATA[KNOCKOUT_STAGES_DATA.length-1].lastMatchNumber);
+
+    if(!KnockoutStageMatchesPredictions){
+        KnockoutStageMatchesPredictions = {};
+    }
+
+    return KnockoutStageMatchesPredictions;
+}
+
 async function saveKnockoutStagePredictData(userIdInSweepestake, predictDataArray) {
     if(userIdInSweepestake === undefined || userIdInSweepestake === null){
         throw new Error("O id do usuário na tabela de usuários do bolão não foi informado.");        
@@ -166,4 +193,5 @@ async function registerKnockoutStageFilledStatus(userIdInSweepestake, knockoutSt
 
 module.exports = { getGroupStageMatchesPredictions, saveGroupStagePredictData, getFilledStatusOfAllKnockoutStages, 
     getConstKnockoutStageDataFromKnockoutStageName, getKnockoutStageMatchesPredictionsFromMatchesNumberInterval,
-    saveKnockoutStagePredictData, registerKnockoutStageFilledStatus };
+    saveKnockoutStagePredictData, registerKnockoutStageFilledStatus, KNOCKOUT_STAGES_DATA,
+    getConstKnockoutStageDataFromMatchNumber, getAllKnockoutStageMatchesPredictions, getConstKnockoutStageDataFromOrder };

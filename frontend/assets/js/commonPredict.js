@@ -1,4 +1,5 @@
-import {showModal} from './common.js';
+import {showModal, hideModal, getUserIdInSweepstake, makeRequest, 
+    handleRequest, HANDLE_REQUESTS_STATUS} from './common.js';
 
 export function defineMainElementMarginTop() {
     const header = document.querySelector("header");
@@ -203,4 +204,44 @@ export function showReviewMatchesMsg(msgTitle, checkPartialFilledMatchesResult, 
     }
 
     showModal(msgTitle + " - Revisar Partidas", htmlContentMsg, true, "OK", null, false);
+}
+
+export async function downloadSweepsAnswers(sweepsName, userIdOutsideSweepstake, allUsersAnswers){
+    let msgTitle = "Download de Respostas";
+    let userIdInSweepstake = await getUserIdInSweepstake(sweepsName, userIdOutsideSweepstake, msgTitle);
+
+    if(userIdInSweepstake === -1){
+        return;
+    }
+
+    if(allUsersAnswers){
+        await downloadSweepsAllUserAnswers(sweepsName, userIdInSweepstake, msgTitle);
+    }else{
+        await downloadSweepsUserSelfAnswers(sweepsName, userIdInSweepstake, msgTitle);
+    }
+}
+
+async function downloadSweepsUserSelfAnswers(sweepsName, userIdInSweepstake, msgTitle) {
+    let handleReturn = await handleRequest(() => makeRequest(`/export/sweeps/data/userFilled?sweepsName=${sweepsName}&userIdInSweepstake=${userIdInSweepstake}`, 
+        "GET"), null, false, ()=>{throw new Error();}, true, msgTitle);
+    /* Obs.: caso ocorra alguma falha, será disparado o erro (passado como parâmetro). 
+    * Isso fará com que a handleRequest vá para o bloco catch, exibindo mensagem com
+     o erro e direcionando o usuário a home page*/
+
+    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+        hideModal();
+        showPDFInNewBrowserTab(handleReturn);
+    }
+}
+
+function showPDFInNewBrowserTab(handleReturn){
+    const blob = handleReturn.response.body;
+    const pdfUrl = URL.createObjectURL(blob);
+    window.open(pdfUrl, '_blank');
+}
+
+async function downloadSweepsAllUserAnswers(sweepsName, userIdInSweepstake, msgTitle) {
+    
 }

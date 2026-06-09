@@ -1,8 +1,9 @@
 import { goToPage, showLoadingModal, goToHomePage, makeRequest, handleRequest, HANDLE_REQUESTS_STATUS,
     loadModalInHtmlPage, showModal, hideModal, loadHtmlComponentInHtmlPage, 
     getHtmlOfComponent, addEventsToUpdateDropdownSelectedItem, setDefaultDropdownSelectedItem, 
-    formatUrlToExternUrl} from "./common.js";
+    formatUrlToExternUrl, getUserIdInSweepstake} from "./common.js";
 import { PAGE_CONFIGS } from "./config.js";
+import { downloadSweepsAnswers } from "./commonPredict.js";
 
 const msgTitle = "Bolões";
 const adminSweepsListTitle = "Bolões do Sistema";
@@ -14,6 +15,7 @@ var sweepsData;
 var allSweepsNamesData;
 var failedInSomeInitRequest = false;
 var failedInSomeRequestToOpenSweepsFillPage = false;
+var failedInSomeRequestToDownloadSweepsAnswersPage = false;
 var knockoutStagesFilledStatus; //Array que serve para indicar se o usuário está na fase de grupos, mata-mata ou já finalizou tudo
 
 const newSweepsData = `
@@ -39,6 +41,7 @@ var joinSweepsDataParsed;
 
 export async function init(){
     await loadModalInHtmlPage();
+    sessionStorage.clear();
     definePageUI();
 }
 
@@ -144,7 +147,9 @@ async function constructSweepsListUI(){
         element.children[0].setAttribute("src", "/assets/img/btn_sweepstack_download_answers.png");
         element.children[0].setAttribute("class", "app-list-item-icon-btn");
         ///Download Answers button id:
-        element.children[0].id = "btnDownload_" + sweepsData[i].name;        
+        element.id = "btnDownload_" + sweepsData[i].name;   
+        ///Download Answers button click event:
+        element.addEventListener("click", handleClickInDownloadAnswersSweepsButton);     
 
         ///Whatsapp link button:
         element = document.getElementsByName("listItemFooterContent3")[i];
@@ -172,6 +177,11 @@ async function constructSweepsListUI(){
 
 }
 
+function showUserIsNotInSweeepstakeMsg(){
+    showModal(msgTitle, "Você não pertence ao bolão. Para preenchê-lo, primeiro entre nele.", true, 
+        "OK", null, false);    
+}
+
 async function handleClickInFillSweepsButton(event){
     const sweepsName = String(event.currentTarget.id).split("_")[1];
 
@@ -179,11 +189,11 @@ async function handleClickInFillSweepsButton(event){
     let isUserInSweeps = await checkIfUserIsInSweeps(sweepsName);
     console.log(isUserInSweeps);
     if(isUserInSweeps === 0){
-        showModal(msgTitle, "Você não pertence ao bolão. Para preenchê-lo, primeiro entre nele.", true, 
-            "OK", null, false);
+        showUserIsNotInSweeepstakeMsg();
     }else{
        //Adicionando o nome do bolão no local storage:
-       storeSelectSweepsNameToFillInSessionStorage(sweepsName);
+       storeSelectSweepsNameActionInSessionStorage(sweepsName);
+       await storeSelectedSweepstakeUserIdInSessionStorage(sweepsName);
        //Adicionando o id do usuário na tabela sweepstake_users no local storage:
        await storeSelectedSweepstakeUserIdInSessionStorage(sweepsName);
        if(failedInSomeRequestToOpenSweepsFillPage){
@@ -211,6 +221,102 @@ async function handleClickInFillSweepsButton(event){
 
     }
 
+}
+
+async function handleClickInDownloadAnswersSweepsButton(event){
+    const sweepsName = String(event.currentTarget.id).split("_")[1];
+    const msgDownloadTitle = msgTitle + " - Download das Respostas";
+
+    //Verificando se o usuário pertence ao bolão:
+    let isUserInSweeps = await checkIfUserIsInSweeps(sweepsName);
+    if(isUserInSweeps === 0){
+        showUserIsNotInSweeepstakeMsg();
+    }else{
+       //Adicionando o nome do bolão no local storage:
+       storeSelectSweepsNameActionInSessionStorage(sweepsName);
+       await storeSelectedSweepstakeUserIdInSessionStorage(sweepsName);
+
+        //Verificando se usuário concluiu preenchimento do bolão:
+        await getAllKnockoutStagesFilledStatus();
+        if(knockoutStagesFilledStatus.length < 6){
+            showModal(msgDownloadTitle, `<p>Para baixar uma cópia das suas respostas, primeiro 
+                termine de preencher o bolão '${sweepsName}'.</p>`, true, "OK", null, false);
+            return;
+        }
+        
+
+       //Verificando se usuário é admin:
+       if(userData.isAdmin){
+            //Exibindo mensagem perguntando se ele quer baixar a resposta dele 
+            // ou as respostas de todos os participantes:
+            showModal(msgDownloadTitle, generateHTMLToDownloadAnswersModalWhenUserIsSweepsOwner(sweepsName, true), 
+            true, "CONFIRMAR", () => handleDownloadAnswersSweepsOwnerOption(sweepsName), true, "CANCELAR", null, true);
+       }else{
+            await downloadSweepsAnswers(sweepsName, userData.id, false);
+       }
+    }
+}
+
+async function handleDownloadAnswersSweepsOwnerOption(sweepsName) {
+    let selfAnwsersCheckbox = document.getElementById("selfAnswers");
+    let allAnwersCheckbox = document.getElementById("allAnswers");
+    let warningMsg = document.getElementById("warning-msg");
+
+    //Check if only one checkboxes was checked:
+    if(!selfAnwsersCheckbox.checked && !allAnwersCheckbox.checked){
+        warningMsg.textContent = "Você não selecionou nenhuma opção."
+        warningMsg.classList.remove("d-none");
+        return;
+    }
+
+    hideModal();
+    if(selfAnwsersCheckbox.checked){
+        await downloadSweepsAnswers(sweepsName, userData.id, false);
+    }else{
+        await downloadSweepsAnswers(sweepsName, userData.id, true);        
+    }
+}
+
+function generateHTMLToDownloadAnswersModalWhenUserIsSweepsOwner(sweepsName){
+    let htmlModal = "";
+
+    htmlModal += `
+    <div class="row d-flex justify-content-center align-items-center">
+        <div class="col-12 text-start">
+            <p class="app-normal-txt">
+                Você deseja baixar apenas as suas respostas (PDF) ou 
+                as respostas de todos os participantes (CSV) do bolão '${sweepsName}'?
+            </p>
+        </div>
+    </div>
+        <div class="row d-flex justify-content-center align-items-center">
+            <div class="col-12 text-start">
+                <div class="form-check">
+                    <input class="app-checkbox-field form-check-input" type="radio" name="flexRadioDefault" id="selfAnswers">
+                    <label class="form-check-label" for="selfAnswers">
+                        Baixar apenas minha resposta
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="row d-flex justify-content-center align-items-center">
+            <div class="col-12 text-start">
+                <div class="form-check">
+                    <input class="app-checkbox-field form-check-input" type="radio" name="flexRadioDefault" id="allAnswers">
+                    <label class="form-check-label" for="allAnswers">
+                        Baixar as respostas de todos os participantes
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="row d-flex justify-content-center align-items-center">
+            <div class="col-12 text-start">
+                <p id="warning-msg" class="app-alert-txt-block app-top-separation d-none" style="width: 300px;">
+                </p>
+            </div>
+        </div>
+        `;
+    return htmlModal;
 }
 
 async function getAllKnockoutStagesFilledStatus(){
@@ -797,19 +903,14 @@ function storeUserLoggedDataInSessionStorage(jsonUserData){
     sessionStorage.setItem("userIsAdmin", jsonUserData.isAdmin);
 }
 
-function storeSelectSweepsNameToFillInSessionStorage(sweepsName){
+function storeSelectSweepsNameActionInSessionStorage(sweepsName){
     sessionStorage.setItem("fillingSweepstake", sweepsName);
 }
 
 async function storeSelectedSweepstakeUserIdInSessionStorage(sweepsName){
-
-    let handleReturn = await handleRequest(() => makeRequest("/sweeps/userId?sweepsName=" + sweepsName + "&userId=" + userData.id, "GET"), 
-    null, false, ()=>{throw new Error();}, true, msgTitle);
-
-    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
-        handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
-        handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
-        sessionStorage.setItem("userIdInSweepestake", handleReturn.response.body.sweepstake_user_id);
+    let sweepstakeUserId = await getUserIdInSweepstake(sweepsName, userData.id, msgTitle);
+    if(sweepstakeUserId !== -1){
+        sessionStorage.setItem("userIdInSweepestake", sweepstakeUserId);
         hideModal();
     }else{
         failedInSomeRequestToOpenSweepsFillPage = true;

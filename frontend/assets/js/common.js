@@ -178,7 +178,16 @@ export async function makeRequest(endPoint, method = 'GET', reqJson=null, isJson
     }
 
     const response = await fetch(getBackendBaseUrl() + endPoint, requestOptions);
-    const responseBody = await response.json(); // ou .json()
+    const contentType = response.headers.get('content-type');
+    var responseBody;
+
+    if (contentType?.includes('application/pdf')) {
+        responseBody = await response.blob();
+    } else if (contentType?.includes('application/json')) {
+        responseBody = await response.json();
+    } else {
+        responseBody = await response.text();
+    }
 
     return {
       status: response.status,
@@ -420,4 +429,19 @@ export function formatUrlToExternUrl(url, useHTTPS=true, addWWW=true){
 
 
     return url;
+}
+
+export async function getUserIdInSweepstake(sweepsName, userIdOutsideSweeps, handleRequestMsgTitles){
+
+    let handleReturn = await handleRequest(() => makeRequest("/sweeps/userId?sweepsName=" + sweepsName + "&userId=" + userIdOutsideSweeps, "GET"), 
+    null, false, ()=>{throw new Error();}, true, handleRequestMsgTitles);
+
+    if(handleReturn.status !== HANDLE_REQUESTS_STATUS.authError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.unknownError && 
+        handleReturn.status !== HANDLE_REQUESTS_STATUS.failed){
+        hideModal();
+        return handleReturn.response.body.sweepstake_user_id;
+    }else{
+        return -1;
+    }
 }

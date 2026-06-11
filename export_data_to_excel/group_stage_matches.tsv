@@ -1,0 +1,72 @@
+1	A	México	A	África do Sul	11/jun 16h, México
+3	A	Coreia do Sul	A	República Tcheca	11/jun 23h, México
+4	A	República Tcheca	A	África do Sul	18/jun 13h, Estados Unidos
+5	A	México	A	Coreia do Sul	18/jun 22h, México
+6	A	República Tcheca	A	México	24/jun 22h, México
+7	A	África do Sul	A	Coreia do Sul	24/jun 22h, México
+8	B	Canadá	B	Bósnia e Herzegovínia	12/jun 16h, Canadá
+9	B	Catar	B	Suíça	13/jun 16h, Estados Unidos
+10	B	Suíça	B	Bósnia e Herzegovínia	18/jun 16h, Estados Unidos
+11	B	Canadá	B	Catar	18/jun 19h, Canadá
+12	B	Suíça	B	Canadá	24/jun 16h, Canadá
+13	B	Bósnia e Herzegovínia	B	Catar	24/jun 16h, Estados Unidos
+14	C	Brasil	C	Marrocos	13/jun 19h, Estados Unidos
+15	C	Haiti	C	Escócia	13/jun 22h, Estados Unidos
+17	C	Escócia	C	Marrocos	19/jun 19h, Estados Unidos
+16	C	Brasil	C	Haiti	19/jun 21:30h, Estados Unidos
+18	C	Escócia	C	Brasil	24/jun 19h, Estados Unidos
+19	C	Marrocos	C	Haiti	24/jun 19h, Estados Unidos
+20	D	Estados Unidos	D	Paraguai	12/jun 22h, Estados Unidos
+21	D	Austrália	D	Turquia	14/jun 1h, Canadá
+23	D	Estados Unidos	D	Austrália	19/jun 16h, Estados Unidos
+22	D	Turquia	D	Paraguai	20/jun 0h, Estados Unidos
+24	D	Turquia	D	Estados Unidos	25/jun 23h, Estados Unidos
+25	D	Paraguai	D	Austrália	25/jun 23h, Estados Unidos
+26	E	Alemanha	E	Curaçao	14/jun 14h, Estados Unidos
+27	E	Costa do Marfim	E	Equador	14/jun 20h, Estados Unidos
+28	E	Alemanha	E	Costa do Marfim	20/jun 17h, Canadá
+29	E	Equador	E	Curaçao	20/jun 21h, Estados Unidos
+30	E	Equador	E	Alemanha	25/jun 17h, Estados Unidos
+31	E	Curaçao	E	Costa do Marfim	25/jun 17h, Estados Unidos
+32	F	Holanda	F	Japão	14/jun 17h, Estados Unidos
+33	F	Suécia	F	Tunísia	14/jun 23h, México
+34	F	Holanda	F	Suécia	20/jun 14h, Estados Unidos
+35	F	Tunísia	F	Japão	21/jun 1h, México
+36	F	Tunísia	F	Holanda	25/jun 20h, Estados Unidos
+37	F	Japão	F	Suécia	25/jun 20h, Estados Unidos
+38	G	Bélgica	G	Egito	15/jun 16h, Estados Unidos
+39	G	Irã	G	Nova Zelândia	15/jun 22h, Estados Unidos
+40	G	Bélgica	G	Irã	21/jun 16h, Estados Unidos
+41	G	Nova Zelândia	G	Egito	21/jun 22h, Canadá
+42	G	Nova Zelândia	G	Bélgica	27/jun 0h, Canadá
+43	G	Egito	G	Irã	27/jun 0h, Estados Unidos
+44	H	Espanha	H	Cabo Verde	15/jun 13h, Estados Unidos
+45	H	Arábia Saudita	H	Uruguai	15/jun 19h, Estados Unidos
+46	H	Espanha	H	Arábia Saudita	21/jun 13h, Estados Unidos
+47	H	Uruguai	H	Cabo Verde	21/jun 19h, Estados Unidos
+49	H	Cabo Verde	H	Arábia Saudita	26/jun 21h, Estados Unidos
+48	H	Uruguai	H	Espanha	26/jun 21h, México
+50	I	França	I	Senegal	16/jun 16h, Estados Unidos
+51	I	Iraque	I	Noruega	16/jun 19h, Estados Unidos
+52	I	França	I	Iraque	22/jun 18h, Estados Unidos
+53	I	Noruega	I	Senegal	22/jun 21h, Estados Unidos
+55	I	Senegal	I	Iraque	26/jun 16h, Canadá
+54	I	Noruega	I	França	26/jun 16h, Estados Unidos
+56	J	Argentina	J	Argélia	16/jun 22h, Estados Unidos
+57	J	Áustria	J	Jordânia	17/jun 1h, Estados Unidos
+58	J	Argentina	J	Áustria	22/jun 14h, Estados Unidos
+59	J	Jordânia	J	Argélia	23/jun 0h, Estados Unidos
+60	J	Jordânia	J	Argentina	27/jun 23h, Estados Unidos
+61	J	Argélia	J	Áustria	27/jun 23h, Estados Unidos
+62	K	Portugal	K	RD Congo	17/jun 14h, Estados Unidos
+63	K	Uzbequistão	K	Colômbia	17/jun 23h, México
+64	K	Portugal	K	Uzbequistão	23/jun 14h, Estados Unidos
+65	K	Colômbia	K	RD Congo	23/jun 23h, México
+66	K	Colômbia	K	Portugal	27/jun 20h30, Estados Unidos
+67	K	RD Congo	K	Uzbequistão	27/jun 20h30, Estados Unidos
+68	L	Inglaterra	L	Croácia	17/jun 17h, Estados Unidos
+69	L	Gana	L	Panamá	17/jun 20h, Canadá
+70	L	Inglaterra	L	Gana	23/jun 17h, Estados Unidos
+71	L	Panamá	L	Croácia	23/jun 20h, Canadá
+72	L	Panamá	L	Inglaterra	27/jun 18h, Estados Unidos
+73	L	Croácia	L	Gana	27/jun 18h, Estados Unidos

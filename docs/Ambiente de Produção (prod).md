@@ -283,7 +283,23 @@ Passos:
 5. **EXECUTAR:** *Procedimento 11*
 6. **EXECUTAR:** acessar aplicação via browser (bjcmd.tech)
 7. **VERIFICAR:** frontend deve estar acessível
-   
+
+### Proc 15 - Tirar a Aplicação do Ar Temporariamente:
+Pré-condições:
+* Estar conectado a VPS via terminal;
+* Aplicação Estar no Ar.
+
+1. **EXECUTAR:** ```sudo systemctl stop nginx```
+*OBSERVAÇÃO: O domínio continuará existindo, mas qualquer acesso a https://bjcdm.tech falhará porque não haverá nenhum serviço escutando nas portas 80 e 443.*
+
+### Proc 16 - Colocar a Aplicação no Ar:
+Pré-condições:
+* Estar conectado a VPS via terminal;
+* Aplicação estar fora do ar por interrupção do nginx.
+
+1. **EXECUTAR:** ```sudo systemctl start nginx```
+
+
 ## Diferenças entre o ambiente de produção e o ambiente de desenvolvimento:
 
 * Produção não utiliza CORs, pois tanto o frontend quanto o backend rodam em uma mesma porta;

@@ -3,6 +3,11 @@
 ## Introdução:
 O ambiente de produção, abreviado como "prod" nos arquivos de configuração da aplicação, é o ambiente hospedado na VPS de IP 2.25.130.138 (servidor da Hostinger).
 
+## Local do Projeto:
+O projeto está localizado em:
+/var/www/app
+Pasta: /BJ-2026
+
 ## Tecnologias Utilizadas:
 
 * Frontend: Boostrap 5, HTML 5, CSS 3 e Javascript;

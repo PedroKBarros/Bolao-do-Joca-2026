@@ -130,11 +130,18 @@ Pré-condições:
 Observações: -
 
 Passos:
-1. **EXECUTAR:** ```pm2 startup```
-2. **EXECUTAR:** comando que ele retornar
-*OBSERVAÇÃO: o comando deve ser semelhante a 'sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u deploy --hp /home/deploy'*
-3. **EXECUTAR:** ```pm2 save```
-4. **EXECUTAR:** *Procedimento Proc 3*
+**SE:** o comando pm2 status não exibiu processos **E** isso ocorreu após reiniciar o servidor:
+**ENTÃO:**
+  1. **EXECUTAR:** ```pm2 resurrect```
+  2. **EXECUTAR:** *Procedimento Proc 3*
+  3. **SE:** o comando pm2 continuou sem exibir processos:
+    4. **EXECUTAR:** ```pm2 startup```
+    5. **EXECUTAR:** comando que ele retornar
+    *OBSERVAÇÃO: o comando deve ser semelhante a 'sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u deploy --hp /home/deploy'*
+    6. **EXECUTAR:** ```pm2 save```
+    7. **EXECUTAR:** *Procedimento Proc 3*
+**SENÃO:**
+1. **EXECUTAR:** ```pm2 restart app-backend``` **OU** ```pm2 start app-backend```
 
 ### Proc 5 - Checar Se o MySQL Server Está Sendo Executado Corretamente:
 Pré-condições:
@@ -292,18 +299,22 @@ Passos:
 ### Proc 15 - Tirar a Aplicação do Ar Temporariamente:
 Pré-condições:
 * Estar conectado a VPS via terminal;
-* Aplicação Estar no Ar.
+* Ambiente de produção estar acessível (pm2 e nginx sendo executados corretamente).
 
 1. **EXECUTAR:** ```sudo systemctl stop nginx```
+2. **EXECUTAR:** ```pm2 stop app-backend```
+3. **VERIFICAR:** aplicação não deve estar acessível via https://bjcdm.tech
 *OBSERVAÇÃO: O domínio continuará existindo, mas qualquer acesso a https://bjcdm.tech falhará porque não haverá nenhum serviço escutando nas portas 80 e 443.*
 
 ### Proc 16 - Colocar a Aplicação no Ar:
 Pré-condições:
 * Estar conectado a VPS via terminal;
-* Aplicação estar fora do ar por interrupção do nginx.
+* Aplicação estar fora do ar por interrupção do nginx e do pm2.
 
 1. **EXECUTAR:** ```sudo systemctl start nginx```
-
+2. **EXECUTAR:** ```pm2 start app-backend``` **OU** ```pm2 restart app-backend```
+3. **EXECUTAR:** *Procedimento 3*
+4. **EXECUTAR:** *Procedimento 7*
 
 ## Diferenças entre o ambiente de produção e o ambiente de desenvolvimento:
 

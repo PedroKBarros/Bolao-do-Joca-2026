@@ -306,15 +306,98 @@ Pré-condições:
 3. **VERIFICAR:** aplicação não deve estar acessível via https://bjcdm.tech
 *OBSERVAÇÃO: O domínio continuará existindo, mas qualquer acesso a https://bjcdm.tech falhará porque não haverá nenhum serviço escutando nas portas 80 e 443.*
 
-### Proc 16 - Colocar a Aplicação no Ar:
+### Proc 16 - Colocar a Aplicação no Ar Após Ter Sido Tirada do Ar Temporariamente:
 Pré-condições:
 * Estar conectado a VPS via terminal;
-* Aplicação estar fora do ar por interrupção do nginx e do pm2.
+* Proc. 15 ter sido executado.
 
 1. **EXECUTAR:** ```sudo systemctl start nginx```
 2. **EXECUTAR:** ```pm2 start app-backend``` **OU** ```pm2 restart app-backend```
 3. **EXECUTAR:** *Procedimento 3*
 4. **EXECUTAR:** *Procedimento 7*
+
+Escrita
+
+### Proc 15 - Tirar a Aplicação do Ar por Tempo Indeterminado:
+
+**Pré-condições:**
+
+* Estar conectado à VPS via terminal;
+* Ambiente de produção estar acessível (pm2 e nginx sendo executados corretamente). 
+
+**Observações:**
+
+- O NGINX e o PM2 devem permanecer instalados e disponíveis para utilização futura;
+- O NGINX deve continuar habilitado para inicialização automática;
+- O arquivo de configuração `/etc/nginx/sites-available/bj2026` deve ser preservado para permitir a reativação futura da aplicação;
+- O backend da aplicação é identificado no PM2 pelo nome `app-backend` e utiliza a porta `3000`.
+
+**Passos:**
+
+1. **EXECUTAR:** verificar as configurações habilitadas no NGINX:```
+   ls -l /etc/nginx/sites-enabled/
+   ```
+2. **EXECUTAR:** remover o link simbólico responsável por habilitar a publicação de `bjcdm.tech`:```
+   sudo unlink /etc/nginx/sites-enabled/bj2026
+   ```
+3. **EXECUTAR:** validar as configurações do NGINX:```
+   sudo nginx -t
+   ```
+4. **VERIFICAR:** o comando deve retornar `syntax is ok` e `test is successful`.
+   - **SE:** o comando indicar erro. **ENTÃO:** **EXECUTAR:** analisar e corrigir o problema antes de prosseguir.
+5. **VERIFICAR:** o NGINX está em execução:```
+   sudo systemctl is-active nginx
+   ```
+   - **SE:** retornar `inactive`. **ENTÃO:** **EXECUTAR:** iniciar o serviço:```
+     sudo systemctl start nginx
+     ```
+   - **SE:** retornar `active`. **ENTÃO:** **EXECUTAR:** recarregar a configuração:```
+     sudo systemctl reload nginx
+     ```
+6. **VERIFICAR:** a inicialização automática do NGINX permanece habilitada:```
+   sudo systemctl is-enabled nginx
+   ```
+   - **VERIFICAR:** o retorno deve ser `enabled`.
+   - **OBSERVAÇÃO:** não executar `systemctl disable nginx`, `systemctl mask nginx` ou `systemctl stop nginx`, pois o serviço deverá permanecer disponível para aplicações futuras.
+7. **EXECUTAR:** verificar os processos gerenciados pelo PM2, utilizando o usuário Linux responsável pelo backend:```
+   pm2 list
+   ```
+8. **EXECUTAR:** remover o backend da lista de processos do PM2:```
+   pm2 delete app-backend
+   ```
+9. **EXECUTAR:** salvar a lista atualizada de processos:```
+   pm2 save
+   ```
+10. **OBSERVAÇÃO:** não executar `pm2 unstartup`, pois a configuração de inicialização automática do PM2 deve ser preservada para uso futuro.
+11. **VERIFICAR:** confirmar que o backend não aparece mais na lista do PM2:```
+    pm2 list
+    ```
+12. **VERIFICAR:** confirmar que não há processos escutando na porta `3000`:```
+    sudo ss -lntp | grep ':3000'
+    ```
+    - **VERIFICAR:** não deve haver saída, desde que a porta `3000` seja exclusiva do backend.
+    - **SE:** houver saída. **ENTÃO:** **EXECUTAR:** identificar o processo responsável e investigar se existe outro mecanismo mantendo o backend em execução.
+13. **VERIFICAR:** confirmar que a configuração `bj2026` não está mais habilitada:```
+    ls -l /etc/nginx/sites-enabled/
+    ```
+    - **VERIFICAR:** o link simbólico `bj2026` não deve aparecer.
+    - **OBSERVAÇÃO:** o arquivo `/etc/nginx/sites-available/bj2026` deve permanecer preservado.
+14. **EXECUTAR:** verificar se existem scripts, serviços do `systemd`, agendamentos ou rotinas de deploy que possam iniciar novamente o backend.
+    - **SE:** houver algum mecanismo de inicialização automática específico do `app-backend`. **ENTÃO:** **EXECUTAR:** corrigir ou desabilitar somente esse mecanismo, preservando a inicialização automática do PM2 para uso futuro.
+15. **EXECUTAR:** testar a disponibilidade do domínio a partir de uma máquina externa à VPS:```
+    curl -I --max-time 10 https://bjcdm.tech
+    ```
+    - **VERIFICAR:** a aplicação não deve estar acessível pelo domínio.
+    - **OBSERVAÇÃO:** uma resposta HTTP pode indicar que outro servidor ou uma configuração padrão está atendendo à requisição. Investigar se necessário.
+16. **VERIFICAR:** registrar a conclusão do procedimento somente após confirmar que:
+    - O NGINX permanece `active` e `enabled`;
+    - O link simbólico `bj2026` não existe em `/etc/nginx/sites-enabled/`;
+    - O processo `app-backend` não consta na lista salva do PM2;
+    - Não há outro mecanismo conhecido que reinicie automaticamente o backend;
+    - A aplicação não está acessível pelo domínio público.
+
+**Observação final:** o procedimento preserva o código-fonte, os dados, o arquivo de configuração do NGINX e os certificados TLS. Para reativar a aplicação futuramente, será necessário habilitar novamente o site no NGINX e iniciar o backend conforme o procedimento de deploy do projeto.
+
 
 ## Diferenças entre o ambiente de produção e o ambiente de desenvolvimento:
 

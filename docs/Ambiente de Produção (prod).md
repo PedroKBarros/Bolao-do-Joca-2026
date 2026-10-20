@@ -398,6 +398,109 @@ Escrita
 
 **Observação final:** o procedimento preserva o código-fonte, os dados, o arquivo de configuração do NGINX e os certificados TLS. Para reativar a aplicação futuramente, será necessário habilitar novamente o site no NGINX e iniciar o backend conforme o procedimento de deploy do projeto.
 
+Escrita
+
+### Proc 16 - Reativar a Aplicação Após Executar o Proc 15:
+
+**Pré-condições:**
+
+- Estar conectado à VPS via terminal;
+- O código-fonte da aplicação estar disponível em `/var/www/app/BJ-2026/`;
+- O arquivo de configuração do NGINX estar preservado em `/etc/nginx/sites-available/bj2026`;
+- Conhecer o procedimento de inicialização do backend Node.js;
+- Possuir os certificados TLS necessários para o domínio `bjcdm.tech`.
+
+**Observações:**
+
+- O NGINX e o PM2 devem permanecer instalados;
+- O procedimento Proc 15 remove o backend da lista de processos do PM2 e desabilita a configuração do site no NGINX, mas preserva os arquivos da aplicação;
+- A aplicação utiliza a porta `3000` para o backend e o NGINX para publicar o frontend e encaminhar as requisições `/api/`;
+- O procedimento deve ser executado na ordem apresentada, para evitar a publicação do site antes de o backend estar funcional.
+
+**Passos:**
+
+1. **EXECUTAR:** verificar se o NGINX está instalado e disponível:```
+   sudo systemctl status nginx --no-pager
+   ```
+2. **SE:** o NGINX estiver parado. **ENTÃO:** **EXECUTAR:** iniciar o serviço:```
+   sudo systemctl start nginx
+   ```
+3. **VERIFICAR:** confirmar que o NGINX está ativo:```
+   sudo systemctl is-active nginx
+   ```
+   - **VERIFICAR:** o retorno deve ser `active`.
+   - **SE:** o serviço não iniciar. **ENTÃO:** **EXECUTAR:** analisar os logs:```
+     sudo journalctl -u nginx -n 50 --no-pager
+     ```
+     **E** **EXECUTAR:** corrigir a causa do problema antes de prosseguir.
+4. **EXECUTAR:** verificar se o backend já está em execução:```
+   pm2 list
+   ```
+   - **SE:** `app-backend` já estiver listado e funcionando. **ENTÃO:** prosseguir para a etapa 7.
+   - **SE:** `app-backend` não estiver listado. **ENTÃO:** prosseguir para a etapa 5.
+5. **EXECUTAR:** acessar o diretório do backend e iniciar a aplicação conforme o procedimento de deploy do projeto.
+   - **OBSERVAÇÃO:** utilizar o comando de inicialização já definido no projeto, respeitando as variáveis de ambiente, dependências e configurações de produção.
+   - **OBSERVAÇÃO:** se o projeto utilizar um arquivo `ecosystem.config.js`, poderá ser necessário executar o comando correspondente:```
+     pm2 start ecosystem.config.js
+     ```
+     **ATENÇÃO:** executar esse comando somente se o arquivo existir e estiver configurado corretamente para iniciar o backend `app-backend`.
+6. **EXECUTAR:** salvar a lista atualizada de processos do PM2:```
+   pm2 save
+   ```
+7. **VERIFICAR:** confirmar que o backend está em execução:```
+   pm2 list
+   ```
+   - **VERIFICAR:** o processo `app-backend` deve aparecer com estado `online`.
+   - **EXECUTAR:** verificar se existe um processo escutando na porta `3000`:```
+     sudo ss -lntp | grep ':3000'
+     ```
+   - **SE:** o backend não estiver funcionando. **ENTÃO:** **EXECUTAR:** analisar os logs:```
+     pm2 logs app-backend --lines 50
+     ```
+     **E** **EXECUTAR:** corrigir a causa do problema antes de prosseguir.
+8. **EXECUTAR:** reabilitar a configuração do site no NGINX:```
+   sudo ln -s /etc/nginx/sites-available/bj2026 /etc/nginx/sites-enabled/bj2026
+   ```
+   - **OBSERVAÇÃO:** executar somente se o link simbólico ainda não existir.
+   - **SE:** o link já existir. **ENTÃO:** não executar novamente o comando.
+9. **EXECUTAR:** validar a configuração do NGINX:```
+   sudo nginx -t
+   ```
+   - **VERIFICAR:** o comando deve retornar `syntax is ok` e `test is successful`.
+   - **SE:** houver erros. **ENTÃO:** **EXECUTAR:** corrigir os problemas antes de prosseguir. Não recarregar o NGINX enquanto a configuração for inválida.
+10. **EXECUTAR:** recarregar o NGINX para habilitar a publicação da aplicação:```
+    sudo systemctl reload nginx
+    ```
+11. **VERIFICAR:** confirmar que o NGINX está ativo:```
+    sudo systemctl is-active nginx
+    ```
+    - **VERIFICAR:** o retorno deve ser `active`.
+12. **EXECUTAR:** verificar se o NGINX está escutando nas portas HTTP e HTTPS:```
+    sudo ss -lntp | grep -E ':(80|443)\b'
+    ```
+    - **OBSERVAÇÃO:** a presença das portas depende das diretivas `listen` e da configuração efetivamente carregada pelo NGINX.
+13. **EXECUTAR:** testar a disponibilidade do domínio:```
+    curl -I --max-time 10 https://bjcdm.tech
+    ```
+    - **VERIFICAR:** o domínio deve responder conforme a configuração da aplicação.
+    - **OBSERVAÇÃO:** um retorno HTTP `200`, `301`, `302` ou outro código não representa necessariamente uma falha; verificar se o comportamento é compatível com o esperado para a aplicação.
+14. **EXECUTAR:** validar o funcionamento do frontend e do backend:
+    - **VERIFICAR:** acessar `https://bjcdm.tech` em um navegador;
+    - **VERIFICAR:** confirmar que o frontend é exibido corretamente;
+    - **VERIFICAR:** executar uma operação que dependa da API e confirmar que o backend responde adequadamente.
+15. **VERIFICAR:** confirmar que a inicialização automática está habilitada para os serviços necessários:```
+    sudo systemctl is-enabled nginx
+    ```
+    - **VERIFICAR:** o retorno deve ser `enabled`.
+    - **OBSERVAÇÃO:** se a inicialização automática do PM2 estiver configurada, confirmar que o processo `app-backend` foi salvo com `pm2 save` e que o mecanismo de inicialização do PM2 permanece habilitado.
+16. **VERIFICAR:** registrar a conclusão do procedimento somente após confirmar que:
+    - O backend `app-backend` está em execução no PM2;
+    - O backend responde na porta `3000`;
+    - A configuração `bj2026` está habilitada no NGINX;
+    - O NGINX está ativo e atendendo às portas configuradas;
+    - O frontend e as operações da API funcionam por meio de `https://bjcdm.tech`.
+
+**Observação final:** este procedimento reativa a aplicação preservada pelo Proc 15. Caso o backend não possa ser iniciado pelo comando previsto no projeto, consultar o procedimento de deploy antes de realizar alterações adicionais.
 
 ## Diferenças entre o ambiente de produção e o ambiente de desenvolvimento:
 
